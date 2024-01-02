@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Lock, Plus, Trash2, Unlock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { redirect, useParams, useSearchParams } from "next/navigation";
-
-redirect("/new");
+import { useParams, useSearchParams } from "next/navigation";
 
 const Home = () => {
 	// store the palette in state
