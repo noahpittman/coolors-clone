@@ -6,11 +6,10 @@
 // TODO: add a color picker to change colors when hex is clicked
 
 import { Button } from "@/components/ui/button";
-import { Copy, Lock, Plus, Trash2, Unlock } from "lucide-react";
+import { Copy, Lock, MoreHorizontal, Plus, Trash2, Unlock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { GetColorName } from "hex-color-to-color-name";
 import {
 	Tooltip,
@@ -18,10 +17,23 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import {
+	Dialog,
+	DialogHeader,
+	DialogContent,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Home = () => {
 	// store the palette in state
 	const [palette, setPalette] = useState<any[]>([]);
+
+	const [isolate, setIsolate] = useState<boolean>(false);
+	const [smoothColorChange, setSmoothColorChange] = useState<boolean>(false);
+
 	// get the palette from the url
 	const { id } = useParams();
 	// get the router
@@ -225,122 +237,166 @@ const Home = () => {
 
 	return (
 		<div className="grid grid-rows-[auto_auto_1fr] min-h-screen grid-flow-row">
-			<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b"></div>
+			<Dialog>
+				<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b"></div>
+				<div className="h-14 row px-4 flex justify-between gap-4 items-center border-b">
+					<p className="min-w-fit text-muted-foreground">
+						Press the spacebar to generate a color palette!
+					</p>
+					<div className="flex gap-4 w-full justify-end ">
+						<DialogTrigger asChild>
+							<Button asChild size={"icon"} variant={"ghost"}>
+								<div className="cursor-pointer rounded-full">
+									<MoreHorizontal className="h-4 w-4" />
+								</div>
+							</Button>
+						</DialogTrigger>
 
-			<div className="h-14 row px-4 flex justify-between gap-4 items-center border-b">
-				<p className="min-w-fit text-muted-foreground">
-					press the spacebar to generate a color palette!
-				</p>
-				<div className="flex gap-4 w-full justify-end ">
-					<Button
-						asChild
-						size={"icon"}
-						// variant={"outline"}
-						onKeyUpCapture={() => {}}
-						onClick={addColor}
-						// className="rounded-full overflow-visible"
-					>
-						<div className="cursor-pointer rounded-full">
-							<Plus className="h-4 w-4" />
-						</div>
-					</Button>
-					<Button id="randomizeButton" onClick={changePalette}>
-						randomize!
-					</Button>
-				</div>
-			</div>
+						<DialogContent className="max-w-sm">
+							<DialogHeader>
+								<DialogTitle>Settings</DialogTitle>
+								<Separator className="w-full" />
+							</DialogHeader>
+							<div className=" text-muted-foreground font-medium flex justify-between items-center">
+								<p>Isolate colors</p>
+								<Checkbox
+									className="scale-125"
+									checked={isolate}
+									onClick={() => setIsolate(!isolate)}
+								/>
+							</div>
+							<div className=" text-muted-foreground font-medium flex justify-between items-center">
+								<p>Smooth color transition</p>
+								<Checkbox
+									className="scale-125"
+									checked={smoothColorChange}
+									onClick={() => setSmoothColorChange(!smoothColorChange)}
+								/>
+							</div>
+						</DialogContent>
 
-			<div className="grid grid-flow-col">
-				{palette.map((color) => (
-					<div
-						key={color.index}
-						className={`flex justify-end pb-20 flex-col space-y-8 items-center ${
-							isLight(color.color) ? "text-black/75" : "text-white/75"
-						}`}
-						style={{ background: color.color }}
-					>
-						<div className="flex flex-col items-center w-full h-full justify-end opacity-0 space-y-8 hover:opacity-100 transition-all">
-							{/* Trash Icon */}
-							<TooltipProvider>
-								<Tooltip>
-									<TooltipTrigger>
-										<Button
-											asChild
-											className="rounded-full overflow-visible"
-											variant={"ghost"}
-											size={"icon"}
-											onClick={() => removeColor(color.index)}
-										>
-											<Trash2 className="h-10 w-10 p-2 cursor-pointer" />
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent sideOffset={-24} side="bottom">
-										<p>remove color</p>
-									</TooltipContent>
-								</Tooltip>
-							</TooltipProvider>
+						<div className="bg-border w-[1px] rounded-full" />
+						<Button asChild onClick={addColor}>
+							<div className="cursor-pointer rounded-full">
+								Add a color
+								<Plus className="h-4 w-4 ml-2" />
+							</div>
+						</Button>
 
-							{/* Copy Icon */}
-							<TooltipProvider>
-								<Tooltip delayDuration={500}>
-									<TooltipTrigger>
-										<Button
-											asChild
-											className="rounded-full overflow-visible"
-											onClick={() => {
-												navigator.clipboard.writeText(color.color);
-												toast.success("Copied to clipboard!");
-											}}
-											variant={"ghost"}
-											size={"icon"}
-										>
-											<Copy className="h-10 w-10 p-2 cursor-pointer" />
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent sideOffset={-24} side="bottom">
-										<p>copy hex</p>
-									</TooltipContent>
-								</Tooltip>
-							</TooltipProvider>
-
-							{/* Lock Icon */}
-							<TooltipProvider>
-								<Tooltip>
-									<TooltipTrigger>
-										<Button
-											asChild
-											onClick={() => handleLock(color.color)}
-											variant={"ghost"}
-											size={"icon"}
-											className="rounded-full overflow-visible"
-										>
-											{color.locked ? (
-												<Lock className="h-10 w-10 p-2 cursor-pointer" />
-											) : (
-												<Unlock className="h-10 w-10 p-2 cursor-pointer" />
-											)}
-										</Button>
-									</TooltipTrigger>
-									<TooltipContent sideOffset={-24} side="bottom">
-										{color.locked ? <p>unlock color</p> : <p>lock color</p>}
-									</TooltipContent>
-								</Tooltip>
-							</TooltipProvider>
-						</div>
-						<div className="space-y-4 items-end">
-							<p className="text-3xl font-semibold uppercase w-[10ch] text-center">
-								{color.color
-									.split("")
-									.filter((letter: string) => letter != "#")
-									.join("")}
-							</p>
-							<p className="capitalize font-medium text-nowrap text-center opacity-75">
-								{GetColorName(color.color)}
-							</p>
-						</div>
+						{/* RANDOMIZE BUTTON */}
+						<Button
+							id="randomizeButton"
+							className={"hidden"}
+							onClick={changePalette}
+						>
+							randomize!
+						</Button>
 					</div>
-				))}
-			</div>
+				</div>
+
+				<div className="grid grid-flow-col">
+					{palette.map((color) => (
+						<div
+							key={color.index}
+							className={`flex justify-end pb-20 flex-col space-y-8 items-center ${
+								isLight(color.color) ? "text-black/75" : "text-white/75"
+							}
+						// TODO: cant have both transitions at the same time
+
+						${isolate && "scale-95"}
+						${smoothColorChange && "transition-colors"}
+						`}
+							style={{ background: color.color }}
+						>
+							<div></div>
+							<div className="flex flex-col items-center w-full h-full justify-end opacity-0 space-y-8 hover:opacity-100 transition-all">
+								{/* Trash Icon */}
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger>
+											<Button
+												asChild
+												className="rounded-full overflow-visible"
+												variant={"ghost"}
+												size={"icon"}
+												onClick={() => removeColor(color.index)}
+											>
+												<Trash2 className="h-10 w-10 p-2 cursor-pointer" />
+											</Button>
+										</TooltipTrigger>
+										<TooltipContent sideOffset={-24} side="bottom">
+											<p>remove color</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+
+								{/* Copy Icon */}
+								<TooltipProvider>
+									<Tooltip delayDuration={500}>
+										<TooltipTrigger>
+											<Button
+												asChild
+												className="rounded-full overflow-visible"
+												onClick={() => {
+													navigator.clipboard.writeText(color.color);
+													toast.success("Copied to clipboard!");
+												}}
+												variant={"ghost"}
+												size={"icon"}
+											>
+												<Copy className="h-10 w-10 p-2 cursor-pointer" />
+											</Button>
+										</TooltipTrigger>
+										<TooltipContent sideOffset={-24} side="bottom">
+											<p>copy hex</p>
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+
+								{/* Lock Icon */}
+								<TooltipProvider>
+									<Tooltip>
+										<TooltipTrigger>
+											<Button
+												asChild
+												onClick={() => handleLock(color.color)}
+												variant={"ghost"}
+												size={"icon"}
+												className="rounded-full overflow-visible"
+											>
+												{color.locked ? (
+													<Lock className="h-10 w-10 p-2 cursor-pointer" />
+												) : (
+													<Unlock className="h-10 w-10 p-2 cursor-pointer" />
+												)}
+											</Button>
+										</TooltipTrigger>
+										<TooltipContent sideOffset={-24} side="bottom">
+											{color.locked ? <p>unlock color</p> : <p>lock color</p>}
+										</TooltipContent>
+									</Tooltip>
+								</TooltipProvider>
+							</div>
+							<div className="space-y-4 items-end">
+								{/* TODO: add color picker to this when clicked */}
+								<p className="text-3xl cursor-pointer hover:bg-accent/10 py-1 font-semibold uppercase w-[7ch] rounded-md text-center">
+									{color.color
+										.split("")
+										.filter((letter: string) => letter != "#")
+										.join("")}
+								</p>
+								{/* TODO: add variants for secondary display 
+								(name, rgb, hsl, cmyk) */}
+								<DialogTrigger asChild>
+									<p className="capitalize cursor-pointer font-medium text-nowrap text-center opacity-75">
+										{GetColorName(color.color)}
+									</p>
+								</DialogTrigger>
+							</div>
+						</div>
+					))}
+				</div>
+			</Dialog>
 		</div>
 	);
 };
