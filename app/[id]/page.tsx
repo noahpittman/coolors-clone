@@ -1,10 +1,16 @@
 "use client";
 
+// TODO: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?)
+// (this happens due to state being reset on re-render)
+// add the locked & index properties to the url and validate them on page load (useEffect) (NOT PREFERRED)
+//  OR (PREFERRED) find a workaround to shallow routing
+
 import { Button } from "@/components/ui/button";
 import { Copy, Lock, Plus, Trash2, Unlock } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 
 const Home = () => {
 	// store the palette in state
@@ -126,6 +132,11 @@ const Home = () => {
 
 	// add a new color to the palette
 	const addColor = () => {
+		if (palette.length == 5) {
+			toast.error("You can't add more than 5 colors!");
+			return;
+		}
+
 		const newPalette = palette.map((color) => {
 			return { color: color.color, locked: false, index: color.index };
 		});
@@ -162,7 +173,6 @@ const Home = () => {
 		setPalette(newPalette);
 	};
 
-	// TODO: change color of text based on background color
 	// create a function to determine whether a color is light or dark, returns a boolean
 	const isLight = (color: string) => {
 		const hex = color.slice(1);
@@ -186,20 +196,31 @@ const Home = () => {
 	}, []);
 
 	useEffect(() => {
-		// @ts-ignore
 		router.replace(hexSetToUrl(palette));
 	}, [palette]);
 
 	return (
 		<div className="grid grid-rows-[auto_auto_1fr] min-h-screen grid-flow-row">
-			<div className="h-16 row px-4 flex gap-4 items-center border-b shadow-sm"></div>
-			<div className="h-16 row px-4 flex gap-4 items-center border-b shadow-sm">
+			<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b">
+				<Button asChild>
+					<Link href={"/new"}>create a new palette</Link>
+				</Button>
+			</div>
+			<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b">
+				<Button
+					asChild
+					size={"icon"}
+					// variant={"outline"}
+					onKeyUpCapture={() => {}}
+					onClick={addColor}
+					// className="rounded-full overflow-visible"
+				>
+					<div className="cursor-pointer rounded-full">
+						<Plus className="h-4 w-4" />
+					</div>
+				</Button>
 				<Button id="randomizeButton" onClick={changePalette}>
 					randomize!
-				</Button>
-				<Button onKeyUpCapture={() => {}} onClick={addColor}>
-					add a color
-					<Plus />
 				</Button>
 			</div>
 			<div className="grid grid-flow-col">
@@ -211,19 +232,6 @@ const Home = () => {
 						}`}
 						style={{ background: color.color }}
 					>
-						<Button
-							asChild
-							onClick={() => handleLock(color.color)}
-							variant={"ghost"}
-							size={"icon"}
-							className="rounded-full overflow-visible"
-						>
-							{color.locked == true ? (
-								<Lock className="h-10 w-10 p-2 cursor-pointer" />
-							) : (
-								<Unlock className="h-10 w-10 p-2 cursor-pointer" />
-							)}
-						</Button>
 						<Button
 							asChild
 							className="rounded-full overflow-visible"
@@ -246,7 +254,21 @@ const Home = () => {
 							<Trash2 className="h-10 w-10 p-2 cursor-pointer" />
 						</Button>
 
-						<h1 className="text-3xl font-semibold uppercase">
+						<Button
+							asChild
+							onClick={() => handleLock(color.color)}
+							variant={"ghost"}
+							size={"icon"}
+							className="rounded-full overflow-visible"
+						>
+							{color.locked == true ? (
+								<Lock className="h-10 w-10 p-2 cursor-pointer" />
+							) : (
+								<Unlock className="h-10 w-10 p-2 cursor-pointer" />
+							)}
+						</Button>
+
+						<h1 className="text-3xl font-semibold uppercase w-[10ch] text-center">
 							{color.color.split("").filter((letter: string) => letter != "#")}
 						</h1>
 					</div>
