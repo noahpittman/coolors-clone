@@ -1,9 +1,9 @@
 "use client";
 
-// TODO: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?)
-// (this happens due to state being reset on re-render)
-// add the locked & index properties to the url and validate them on page load (useEffect) (NOT PREFERRED)
-//  OR (PREFERRED) find a workaround to shallow routing
+// FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
+
+// TODO: add drag and drop functionality to reorder colors (maybe use react-beautiful-dnd)
+// TODO: add a color picker to change colors when hex is clicked
 
 import { Button } from "@/components/ui/button";
 import { Copy, Lock, Plus, Trash2, Unlock } from "lucide-react";
@@ -11,6 +11,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { GetColorName } from "hex-color-to-color-name";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Home = () => {
 	// store the palette in state
@@ -66,7 +73,7 @@ const Home = () => {
 			url += hex.color.slice(1) + "-";
 		});
 		url = url.slice(0, -1);
-		console.log(url);
+		// console.log(url);
 		return url;
 	};
 
@@ -81,7 +88,8 @@ const Home = () => {
 				{ color: randomColor(), locked: false, index: 4 },
 			];
 
-			router.replace(hexSetToUrl(buffer));
+			// router.push(hexSetToUrl(buffer));
+			history.replaceState(null, "", hexSetToUrl(buffer));
 
 			return buffer;
 		}
@@ -106,7 +114,11 @@ const Home = () => {
 			if (isValidHexNoHash(hex) == true) {
 				// console.log(`Hex '${hex}' is valid`);
 				hex = "#" + hex;
-				buffer.push({ color: hex, locked: false, index: bufferCounter });
+				buffer.push({
+					color: hex,
+					locked: false,
+					index: bufferCounter,
+				});
 				bufferCounter++;
 			}
 		});
@@ -125,7 +137,11 @@ const Home = () => {
 	const changePalette = () => {
 		const newPalette = palette.map((color) => {
 			if (color.locked) return color;
-			return { color: randomColor(), locked: false, index: color.index };
+			return {
+				color: randomColor(),
+				locked: false,
+				index: color.index,
+			};
 		});
 		setPalette(newPalette);
 	};
@@ -138,7 +154,7 @@ const Home = () => {
 		}
 
 		const newPalette = palette.map((color) => {
-			return { color: color.color, locked: false, index: color.index };
+			return { color: color.color, locked: color.locked, index: color.index };
 		});
 		newPalette.push({
 			color: randomColor(),
@@ -154,7 +170,12 @@ const Home = () => {
 			toast.error("You can't remove the last color!");
 			return;
 		}
-		const newPalette = palette.filter((color) => color.index != index);
+		const newPalette = palette.filter((color) => {
+			if (color.locked == true && color.index == index)
+				toast.error("You can't remove a locked color!");
+
+			return color.index != index || color.locked == true;
+		});
 		setPalette(newPalette);
 	};
 
@@ -166,6 +187,7 @@ const Home = () => {
 					color: color.color,
 					locked: !color.locked,
 					index: color.index,
+					hover: color.hover,
 				};
 			}
 			return color;
@@ -196,81 +218,126 @@ const Home = () => {
 	}, []);
 
 	useEffect(() => {
-		router.replace(hexSetToUrl(palette));
+		// router.push(hexSetToUrl(palette));
+		history.replaceState(null, "", hexSetToUrl(palette));
+		// console.log(palette);
 	}, [palette]);
 
 	return (
 		<div className="grid grid-rows-[auto_auto_1fr] min-h-screen grid-flow-row">
-			<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b">
-				<Button asChild>
-					<Link href={"/new"}>create a new palette</Link>
-				</Button>
+			<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b"></div>
+
+			<div className="h-14 row px-4 flex justify-between gap-4 items-center border-b">
+				<p className="min-w-fit text-muted-foreground">
+					press the spacebar to generate a color palette!
+				</p>
+				<div className="flex gap-4 w-full justify-end ">
+					<Button
+						asChild
+						size={"icon"}
+						// variant={"outline"}
+						onKeyUpCapture={() => {}}
+						onClick={addColor}
+						// className="rounded-full overflow-visible"
+					>
+						<div className="cursor-pointer rounded-full">
+							<Plus className="h-4 w-4" />
+						</div>
+					</Button>
+					<Button id="randomizeButton" onClick={changePalette}>
+						randomize!
+					</Button>
+				</div>
 			</div>
-			<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b">
-				<Button
-					asChild
-					size={"icon"}
-					// variant={"outline"}
-					onKeyUpCapture={() => {}}
-					onClick={addColor}
-					// className="rounded-full overflow-visible"
-				>
-					<div className="cursor-pointer rounded-full">
-						<Plus className="h-4 w-4" />
-					</div>
-				</Button>
-				<Button id="randomizeButton" onClick={changePalette}>
-					randomize!
-				</Button>
-			</div>
+
 			<div className="grid grid-flow-col">
 				{palette.map((color) => (
 					<div
 						key={color.index}
-						className={`flex justify-center flex-col space-y-8 items-center ${
+						className={`flex justify-end pb-20 flex-col space-y-8 items-center ${
 							isLight(color.color) ? "text-black/75" : "text-white/75"
 						}`}
 						style={{ background: color.color }}
 					>
-						<Button
-							asChild
-							className="rounded-full overflow-visible"
-							onClick={() => {
-								navigator.clipboard.writeText(color.color);
-								toast.success("Copied to clipboard!");
-							}}
-							variant={"ghost"}
-							size={"icon"}
-						>
-							<Copy className="h-10 w-10 p-2 cursor-pointer" />
-						</Button>
-						<Button
-							asChild
-							className="rounded-full overflow-visible"
-							variant={"ghost"}
-							size={"icon"}
-							onClick={() => removeColor(color.index)}
-						>
-							<Trash2 className="h-10 w-10 p-2 cursor-pointer" />
-						</Button>
+						<div className="flex flex-col items-center w-full h-full justify-end opacity-0 space-y-8 hover:opacity-100 transition-all">
+							{/* Trash Icon */}
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger>
+										<Button
+											asChild
+											className="rounded-full overflow-visible"
+											variant={"ghost"}
+											size={"icon"}
+											onClick={() => removeColor(color.index)}
+										>
+											<Trash2 className="h-10 w-10 p-2 cursor-pointer" />
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent sideOffset={-24} side="bottom">
+										<p>remove color</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
 
-						<Button
-							asChild
-							onClick={() => handleLock(color.color)}
-							variant={"ghost"}
-							size={"icon"}
-							className="rounded-full overflow-visible"
-						>
-							{color.locked == true ? (
-								<Lock className="h-10 w-10 p-2 cursor-pointer" />
-							) : (
-								<Unlock className="h-10 w-10 p-2 cursor-pointer" />
-							)}
-						</Button>
+							{/* Copy Icon */}
+							<TooltipProvider>
+								<Tooltip delayDuration={500}>
+									<TooltipTrigger>
+										<Button
+											asChild
+											className="rounded-full overflow-visible"
+											onClick={() => {
+												navigator.clipboard.writeText(color.color);
+												toast.success("Copied to clipboard!");
+											}}
+											variant={"ghost"}
+											size={"icon"}
+										>
+											<Copy className="h-10 w-10 p-2 cursor-pointer" />
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent sideOffset={-24} side="bottom">
+										<p>copy hex</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
 
-						<h1 className="text-3xl font-semibold uppercase w-[10ch] text-center">
-							{color.color.split("").filter((letter: string) => letter != "#")}
-						</h1>
+							{/* Lock Icon */}
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger>
+										<Button
+											asChild
+											onClick={() => handleLock(color.color)}
+											variant={"ghost"}
+											size={"icon"}
+											className="rounded-full overflow-visible"
+										>
+											{color.locked ? (
+												<Lock className="h-10 w-10 p-2 cursor-pointer" />
+											) : (
+												<Unlock className="h-10 w-10 p-2 cursor-pointer" />
+											)}
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent sideOffset={-24} side="bottom">
+										{color.locked ? <p>unlock color</p> : <p>lock color</p>}
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+						</div>
+						<div className="space-y-4 items-end">
+							<p className="text-3xl font-semibold uppercase w-[10ch] text-center">
+								{color.color
+									.split("")
+									.filter((letter: string) => letter != "#")
+									.join("")}
+							</p>
+							<p className="capitalize font-medium text-nowrap text-center opacity-75">
+								{GetColorName(color.color)}
+							</p>
+						</div>
 					</div>
 				))}
 			</div>
@@ -279,6 +346,3 @@ const Home = () => {
 };
 
 export default Home;
-
-// Create a function which takes in a string, and returns a boolean based on whether that string follows a certain format. The format is as follows: The string must consist of ONLY valid hexadecimal characters (0-9, a-f, A-F) The string must be broken into sections of six characters followed by a "-", unless there are only six characters, where no dash is needed. No dash is needed at the end of the final six characters.
-// Examples: "000000" ➞ true, "0000-0000" ➞ false, "000000-FFFFFF" ➞ true, "00000000" ➞ false, "00-0000-00" ➞ false

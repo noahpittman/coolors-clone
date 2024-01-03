@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en">
-			<Toaster position="bottom-right" />
+			<Toaster position="top-center" />
 			<body className={outfit.className}>{children}</body>
 		</html>
 	);
