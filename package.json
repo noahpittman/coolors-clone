@@ -21,6 +21,7 @@
 		"hex-color-to-color-name": "^1.0.2",
 		"lucide-react": "^0.303.0",
 		"next": "14.0.4",
+		"next-client-cookies": "^1.1.0",
 		"react": "^18",
 		"react-dom": "^18",
 		"react-pick-color": "^2.0.0",

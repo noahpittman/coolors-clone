@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { CookiesProvider } from "next-client-cookies/server";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -17,8 +18,10 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en">
-			<Toaster position="top-center" />
-			<body className={outfit.className}>{children}</body>
+			<CookiesProvider>
+				<Toaster position="top-center" />
+				<body className={outfit.className}>{children}</body>
+			</CookiesProvider>
 		</html>
 	);
 }

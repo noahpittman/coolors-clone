@@ -3,7 +3,10 @@
 // TODO: add popup to have user accept cookies (react-cookie)
 // TODO: add isolate and smooth color transition settings to cookies
 // TODO: add drag and drop functionality to reorder colors (maybe use react-beautiful-dnd)
-// TODO: server actions for cookies
+
+//
+// TODO: PUT BANNER IN IF NO COOKIES ARE ALLOWED YET
+//
 
 // FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
 // FIXED: cant have both transitions at the same time
@@ -38,6 +41,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCookies } from "next-client-cookies";
 
 const Home = () => {
 	// store the palette in state
@@ -45,6 +49,8 @@ const Home = () => {
 
 	const [isolate, setIsolate] = useState<boolean>(false);
 	const [smoothColorChange, setSmoothColorChange] = useState<boolean>(false);
+
+	const cookies = useCookies();
 
 	// get the palette from the url
 	const { id } = useParams();
@@ -241,6 +247,53 @@ const Home = () => {
 		};
 	}, []);
 
+	// cookies on load
+	const [cookiesEnabled, setCookiesEnabled] = useState<boolean>(false);
+	useEffect(() => {
+		const cookieStore = cookies.get();
+
+		// check if cookies are enabled
+		if (
+			cookieStore.cookiesAllowed == "false" ||
+			cookieStore.cookiesAllowed == undefined
+		) {
+			console.log("Cookies are disabled");
+			return;
+		}
+
+		// set cookies to state if they are enabled and set to true
+		if (cookieStore.cookiesAllowed == "true") {
+			console.log("cookies are enabled");
+			setCookiesEnabled(true);
+
+			// check if cookies are set and set them if they are not
+			if (cookieStore.isolate == undefined) {
+				cookies.set("isolate", "false");
+			}
+			if (cookieStore.smoothColorChange == undefined) {
+				cookies.set("smoothColorChange", "false");
+			}
+
+			// set cookies compared to state
+			if (isolate == true) {
+				cookies.set("isolate", "true");
+			}
+			if (smoothColorChange == true) {
+				cookies.set("smoothColorChange", "true");
+			}
+
+			// set cookies to state if they are enabled and set to true
+			if (cookieStore.isolate == "true") {
+				setIsolate(true);
+			}
+			if (cookieStore.smoothColorChange == "true") {
+				setSmoothColorChange(true);
+			}
+		}
+
+		console.log(cookieStore);
+	}, [isolate, smoothColorChange]);
+
 	useEffect(() => {
 		// router.push(hexSetToUrl(palette));
 		history.replaceState(null, "", hexSetToUrl(palette));
@@ -250,7 +303,17 @@ const Home = () => {
 	return (
 		<div className="grid grid-rows-[auto_auto_1fr] min-h-screen grid-flow-row">
 			<Dialog>
-				<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b"></div>
+				<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b">
+					{!cookiesEnabled && (
+						<Button
+							onClick={() => {
+								cookies.set("cookiesAllowed", "true");
+							}}
+						>
+							activate cookies
+						</Button>
+					)}
+				</div>
 				<div className="h-14 row px-4 flex justify-between gap-4 items-center border-b">
 					<p className="min-w-fit text-muted-foreground">
 						Press the spacebar to generate a color palette!
@@ -311,14 +374,11 @@ const Home = () => {
 						<>
 							<div
 								key={color.index}
-								className={`flex justify-end pb-20 flex-col space-y-8 items-center ${
-									isLight(color.color) ? "text-black/75" : "text-white/75"
-								}
-						
-
-						${isolate && "scale-[97%]"}
-						${smoothColorChange && "transition-colors"}
-						`}
+								className={`flex justify-end pb-20 flex-col space-y-8 items-center 
+									${isLight(color.color) ? "text-black/75" : "text-white/75"}
+									${isolate && "scale-[97%]"}
+									${smoothColorChange && "transition-colors"}
+								`}
 								style={{ background: color.color }}
 							>
 								<div></div>
