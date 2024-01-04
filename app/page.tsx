@@ -4,9 +4,11 @@ import Link from "next/link";
 
 const Home = () => {
 	return (
-		<div className="flex flex-col space-y-4 justify-center items-center min-h-screen text-center">
+		<div className="flex select-none flex-col space-y-4 justify-center items-center min-h-screen text-center">
 			<Button>
-				<Link href={"/generate"}>Enter app</Link>
+				<Link prefetch href={"/generate"}>
+					Enter app
+				</Link>
 			</Button>
 			<p>not yet suited for mobile</p>
 		</div>

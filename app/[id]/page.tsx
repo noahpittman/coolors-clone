@@ -312,7 +312,7 @@ const Home = () => {
 	}, [palette]);
 
 	return (
-		<div className="grid grid-rows-[auto_auto_1fr] min-h-screen grid-flow-row">
+		<div className="grid grid-rows-[auto_auto_1fr] select-none min-h-screen grid-flow-row">
 			{cookiesEnabled == undefined && (
 				<div className="fixed z-[999] bottom-12 mx-auto w-full text-center">
 					<Card className="max-w-screen-md mx-auto">
@@ -501,7 +501,8 @@ const Home = () => {
 									</Tooltip>
 								</TooltipProvider>
 							</div>
-							<div className="space-y-4 items-end">
+
+							<div className="space-y-4 select-none items-end">
 								<DropdownMenu>
 									<DropdownMenuTrigger
 										asChild
