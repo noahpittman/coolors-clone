@@ -177,7 +177,7 @@ const Home = () => {
 	};
 
 	// add a new color to the palette
-	const addColor = (index?: any) => {
+	const addColor = () => {
 		if (palette.length > 4) {
 			toast.error("You can't add more than 5 colors!");
 			return;
@@ -351,7 +351,7 @@ const Home = () => {
 						</DialogContent>
 
 						<div className="bg-border w-[1px] rounded-full" />
-						<Button asChild onClick={() => addColor}>
+						<Button asChild onClick={() => addColor()}>
 							<div className="cursor-pointer rounded-full">
 								Add a color
 								<Plus className="h-4 w-4 ml-2" />
