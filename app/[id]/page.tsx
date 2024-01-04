@@ -457,7 +457,12 @@ const Home = () => {
 												asChild
 												className="rounded-full overflow-visible"
 												onClick={() => {
-													navigator.clipboard.writeText(color.color);
+													navigator.clipboard.writeText(
+														color.color
+															.split("")
+															.filter((letter: string) => letter != "#")
+															.join("")
+													);
 													toast.success("Copied to clipboard!");
 												}}
 												variant={"ghost"}
