@@ -3,6 +3,7 @@
 // TODO: add popup to have user accept cookies (react-cookie)
 // TODO: add isolate and smooth color transition settings to cookies
 // TODO: add drag and drop functionality to reorder colors (maybe use react-beautiful-dnd)
+// TODO: server actions for cookies
 
 // FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
 // FIXED: cant have both transitions at the same time
@@ -438,7 +439,7 @@ const Home = () => {
 									{/* TODO: add variants for secondary display 
 								(name, rgb, hsl, cmyk) */}
 									<DialogTrigger asChild>
-										<p className="capitalize cursor-pointer font-medium text-nowrap text-center opacity-75">
+										<p className="capitalize cursor-pointer font-medium text-sm text-nowrap text-center opacity-75">
 											{GetColorName(color.color)}
 										</p>
 									</DialogTrigger>
