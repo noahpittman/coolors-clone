@@ -4,7 +4,8 @@
 // TODO: add isolate and smooth color transition settings to cookies
 // TODO: add drag and drop functionality to reorder colors (maybe use react-beautiful-dnd)
 
-// TODO: Move banner to the landing page and make it required to accept or decline cookies to use the app
+// TODO: update styling for mobile view
+// TODO: update styling on color picker
 
 // FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
 // FIXED: cant have both transitions at the same time
@@ -42,16 +43,22 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCookies } from "next-client-cookies";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+
 import Link from "next/link";
+import {
+	AlertDialog,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogDescription,
+	AlertDialogTrigger,
+	AlertDialogContent,
+	AlertDialogAction,
+	AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 const Home = () => {
+	const [isMounted, setIsMounted] = useState<boolean>(false);
+
 	// store the palette in state
 	const [palette, setPalette] = useState<any[]>([]);
 
@@ -305,6 +312,8 @@ const Home = () => {
 
 	// validate the palette on page load and when the url changes and add event listener to randomizeButton
 	useEffect(() => {
+		setIsMounted(true);
+
 		let check: any[] = validateHexSet(id);
 		// console.log(check);
 		if (check[0] === "generate") {
@@ -375,44 +384,52 @@ const Home = () => {
 
 	return (
 		<div className="grid grid-rows-[auto_auto_1fr] select-none min-h-screen grid-flow-row">
-			{cookiesEnabled == undefined && (
-				<div className="fixed z-[999] bottom-12 mx-auto w-full text-center">
-					<Card className="max-w-screen-md mx-auto">
-						<CardHeader>
-							<CardTitle className="text-start">Cookies</CardTitle>
-							{/* TODO: ADD COOKIE POLICY */}
-							<CardDescription className="text-start">
-								We use cookies to store your preferences for the generator. We
-								will never store or share your personal information. <br />
-								If you have any questions, please refer to our{" "}
-								<Button className="p-0" asChild variant={"link"}>
-									<Link href={"/"}>cookie policy.</Link>
+			{isMounted && cookiesEnabled == undefined && (
+				<AlertDialog defaultOpen>
+					<AlertDialogContent>
+						<div>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Cookies</AlertDialogTitle>
+								<AlertDialogDescription>
+									We use cookies to store your preferences for the generator. We
+									will never store or share your personal information. <br />
+									If you have any questions, please refer to our{" "}
+									<Button className="p-0" asChild variant={"link"}>
+										<Link href={"/"}>cookie policy.</Link>
+									</Button>
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+						</div>
+						<div className="flex justify-between items-center p-2 gap-4">
+							<AlertDialogCancel
+								asChild
+								className="bg-destructive border-none hover:bg-destructive/90 hover:text-foreground-content"
+							>
+								<Button
+									variant={"destructive"}
+									onClick={() => {
+										cookies.set("cookiesAllowed", "false", {
+											expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+										});
+										setCookiesEnabled(false);
+									}}
+								>
+									Decline
 								</Button>
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="flex justify-end items-center p-2 gap-4 ">
-							<Button
-								variant={"destructive"}
-								onClick={() => {
-									cookies.set("cookiesAllowed", "false", {
-										expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-									});
-									setCookiesEnabled(false);
-								}}
-							>
-								Decline
-							</Button>
-							<Button
-								onClick={() => {
-									cookies.set("cookiesAllowed", "true");
-									setCookiesEnabled(true);
-								}}
-							>
-								Accept Cookies
-							</Button>
-						</CardContent>
-					</Card>
-				</div>
+							</AlertDialogCancel>
+							<AlertDialogAction autoFocus asChild>
+								<Button
+									onClick={() => {
+										cookies.set("cookiesAllowed", "true");
+										setCookiesEnabled(true);
+									}}
+								>
+									Accept Cookies
+								</Button>
+							</AlertDialogAction>
+						</div>
+					</AlertDialogContent>
+				</AlertDialog>
 			)}
 			<Dialog>
 				<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b"></div>
@@ -618,7 +635,7 @@ const Home = () => {
 													setPalette(buffer);
 												}}
 												alpha={false}
-												className="max-w-[8ch] uppercase"
+												className="max-w-[8ch] uppercase border border-border"
 											/>
 										</div>
 										<div className="w-4 h-4 bg-blue"></div>
