@@ -134,32 +134,79 @@ const Home = () => {
 
 		// If the url doesnt contain a valid hex set, redirect to generate, this does not affect routing,
 		// but it does prevent users from getting stuck with no valid hexes
-		if (hex.split("").length == 6 && isValidHexNoHash(hex) == false) {
-			console.log(`Hex '${hex}' is invalid`);
-			return redirect("/generate");
-		}
 
+		// If the url is shorter than 6 characters, check if it is a valid hex
 		if (hex.split("").length < 6) {
 			console.log(`Hex '${hex}' is invalid`);
 			return redirect("/generate");
+			// If the url is 6 characters long, check if it is a valid hex
+		} else if (hex.split("").length == 6 && isValidHexNoHash(hex) == false) {
+			console.log(`Hex '${hex}' is invalid`);
+			return redirect("/generate");
 		}
+		// If the url is longer than 6 characters, check if it is a valid hex set
+		if (hex.split("").length > 6) {
+			// check if the url contains dashes
+			if (hex.includes("-") == false) {
+				console.log(`Hex '${hex}' is invalid`);
+				return redirect("/generate");
 
-		const hexes = hex.split("-");
-		// console.log(hexes);
+				// check if the url contains more than 5 dashes
+			} else if (hex.split("-").length > 5) {
+				console.log(`Cannot load more than 5 hex values`);
+				return redirect("/generate");
+				// if the url contains only one section, check if it is a valid hex
+			} else if (hex.split("-").length == 1) {
+				if (isValidHex(hex) == false) {
+					console.log(`Hex '${hex}' is invalid`);
+					return redirect("/generate");
+				}
+				// if the url contains more than one section, check if each section is a valid hex
+			} else if (
+				hex.split("-").length > 1 &&
+				hex.split("-").length <= 5 &&
+				hex.split("-").every((hexx: string) => isValidHexNoHash(hexx)) == true
+			) {
+				let buffer: any[] = [];
+				let bufferCounter: number = 0;
+
+				const hexes = hex.split("-");
+				hexes.map((hex: any) => {
+					if (hex.length !== 6) {
+						console.log(`Hex must be 6 characters long`);
+						return null;
+					}
+					if (isValidHexNoHash(hex) == false) {
+						console.log(`Hex '${hex}' is invalid`);
+						return null;
+					}
+					if (isValidHexNoHash(hex) == true) {
+						// console.log(`Hex '${hex}' is valid`);
+						hex = "#" + hex;
+						buffer.push({
+							color: hex,
+							locked: false,
+							index: bufferCounter,
+						});
+						bufferCounter++;
+					}
+				});
+				return buffer;
+			} else return redirect("/generate");
+		}
 
 		let buffer: any[] = [];
 		let bufferCounter: number = 0;
 
-		// console.log("buffercounter", bufferCounter);
-
+		const hexes = hex.split("-");
 		hexes.map((hex: any) => {
 			if (hex.length !== 6) {
 				console.log(`Hex must be 6 characters long`);
-				return [];
+				return null;
 			}
 			if (isValidHexNoHash(hex) == false) {
 				console.log(`Hex '${hex}' is invalid`);
-				return [];
+				return null;
 			}
 			if (isValidHexNoHash(hex) == true) {
 				// console.log(`Hex '${hex}' is valid`);
