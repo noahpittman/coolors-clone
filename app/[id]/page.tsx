@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Lock, MoreHorizontal, Plus, Trash2, Unlock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useParams, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { GetColorName } from "hex-color-to-color-name";
 import {
 	Tooltip,
@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import ColorPicker from "react-pick-color";
+import { HexColorPicker, HexColorInput } from "react-colorful";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -63,7 +63,7 @@ const Home = () => {
 	// get the palette from the url
 	const { id } = useParams();
 	// get the router (removed for now, replaced with history.replaceState)
-	// const router = useRouter();
+	const router = useRouter();
 
 	// generate a random hex color, returns a string
 	const randomColor = () => {
@@ -115,7 +115,7 @@ const Home = () => {
 		return url;
 	};
 
-	// create a function to validate a set of hex colors separated by dashes, returns an array of valid hexes. If input is "new" returns an array of 5 random hexes
+	// create a function to validate a set of hex colors separated by dashes, returns an array of valid hexes. If input is "generate" returns an array of 5 random hexes
 	const validateHexSet = (hex: any) => {
 		if (hex == "generate") {
 			let buffer = [
@@ -126,10 +126,22 @@ const Home = () => {
 				{ color: randomColor(), locked: false, index: 4 },
 			];
 
-			// router.push(hexSetToUrl(buffer));
+			// router.push(hexSetToUrl(buffer), undefined, { shallow: true });
 			history.replaceState(null, "", hexSetToUrl(buffer));
 
 			return buffer;
+		}
+
+		// If the url doesnt contain a valid hex set, redirect to generate, this does not affect routing,
+		// but it does prevent users from getting stuck with no valid hexes
+		if (hex.split("").length == 6 && isValidHexNoHash(hex) == false) {
+			console.log(`Hex '${hex}' is invalid`);
+			return redirect("/generate");
+		}
+
+		if (hex.split("").length < 6) {
+			console.log(`Hex '${hex}' is invalid`);
+			return redirect("/generate");
 		}
 
 		const hexes = hex.split("-");
@@ -142,12 +154,12 @@ const Home = () => {
 
 		hexes.map((hex: any) => {
 			if (hex.length !== 6) {
-				// console.log(`Hex must be 6 characters long`);
-				return null;
+				console.log(`Hex must be 6 characters long`);
+				return [];
 			}
 			if (isValidHexNoHash(hex) == false) {
-				// console.log(`Hex '${hex}' is invalid`);
-				return null;
+				console.log(`Hex '${hex}' is invalid`);
+				return [];
 			}
 			if (isValidHexNoHash(hex) == true) {
 				// console.log(`Hex '${hex}' is valid`);
@@ -246,6 +258,11 @@ const Home = () => {
 
 	// validate the palette on page load and when the url changes and add event listener to randomizeButton
 	useEffect(() => {
+		let check: any[] = validateHexSet(id);
+		// console.log(check);
+		if (check[0] === "generate") {
+			history.replaceState(null, "", "generate");
+		}
 		setPalette(validateHexSet(id));
 
 		// add event listener to randomizeButton
@@ -262,18 +279,18 @@ const Home = () => {
 
 		// check if cookies are enabled
 		if (cookieStore.cookiesAllowed == undefined) {
-			console.log("Cookies are disabled");
+			// console.log("Cookies are disabled");
 		}
 
 		// check if cookies are enabled
 		if (cookieStore.cookiesAllowed == "false") {
 			setCookiesEnabled(false);
-			console.log("Cookies are disabled");
+			// console.log("Cookies are disabled");
 		}
 
 		// set cookies to state if they are enabled and set to true
 		if (cookieStore.cookiesAllowed == "true") {
-			console.log("cookies are enabled");
+			// console.log("cookies are enabled");
 			setCookiesEnabled(true);
 
 			// check if cookies are set and set them if they are not
@@ -306,9 +323,7 @@ const Home = () => {
 	}, [isolate, smoothColorChange, cookiesEnabled]);
 
 	useEffect(() => {
-		// router.push(hexSetToUrl(palette));
 		history.replaceState(null, "", hexSetToUrl(palette));
-		// console.log(palette);
 	}, [palette]);
 
 	return (
@@ -519,14 +534,16 @@ const Home = () => {
 												.join("")}
 										</p>
 									</DropdownMenuTrigger>
-									<DropdownMenuContent className="p-0 rounded-lg">
-										<ColorPicker
+									<DropdownMenuContent className="p-4 rounded-lg space-y-2">
+										<HexColorPicker
 											color={color.color}
+											id="colorPicker"
+											className="custom-layout"
 											onChange={(newColor) => {
 												let buffer = palette.map((paletteColor) => {
 													if (paletteColor.index == color.index) {
 														return {
-															color: newColor.hex,
+															color: newColor,
 															locked: paletteColor.locked,
 															index: paletteColor.index,
 														};
@@ -535,16 +552,29 @@ const Home = () => {
 												});
 												setPalette(buffer);
 											}}
-											className="p-2"
-											theme={{
-												background: "white",
-												inputBackground: "white",
-												borderColor: "lightgrey",
-												borderRadius: "8px",
-												color: "black",
-											}}
-											hideAlpha
 										/>
+										<div>
+											<HexColorInput
+												prefixed
+												color={color.color}
+												onChange={(newColor) => {
+													let buffer = palette.map((paletteColor) => {
+														if (paletteColor.index == color.index) {
+															return {
+																color: newColor,
+																locked: paletteColor.locked,
+																index: paletteColor.index,
+															};
+														}
+														return paletteColor;
+													});
+													setPalette(buffer);
+												}}
+												alpha={false}
+												className="max-w-[8ch] uppercase"
+											/>
+										</div>
+										<div className="w-4 h-4 bg-blue"></div>
 									</DropdownMenuContent>
 								</DropdownMenu>
 
