@@ -635,7 +635,7 @@ const Home = () => {
 													setPalette(buffer);
 												}}
 												alpha={false}
-												className="max-w-[8ch] uppercase border border-border"
+												className="max-w-[9ch] uppercase border border-border p-1 px-2 rounded-md"
 											/>
 										</div>
 										<div className="w-4 h-4 bg-blue"></div>
