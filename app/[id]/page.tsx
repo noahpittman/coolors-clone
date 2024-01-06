@@ -819,6 +819,7 @@ const Home = () => {
 							>
 								{getShades(color.color).map((hex) => (
 									<div
+										key={Math.random()}
 										className={` group
 									cursor-pointer w-full h-full text-center flex justify-center items-center
 									${
