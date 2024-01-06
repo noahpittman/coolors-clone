@@ -10,7 +10,6 @@ const Home = () => {
 					Enter app
 				</Link>
 			</Button>
-			<p>not yet suited for mobile</p>
 		</div>
 	);
 };
