@@ -15,7 +15,17 @@
 // DONE: update styling on color picker
 
 import { Button } from "@/components/ui/button";
-import { Copy, Lock, MoreHorizontal, Plus, Trash2, Unlock } from "lucide-react";
+import {
+	Copy,
+	Dices,
+	Grid,
+	Lock,
+	MoreHorizontal,
+	Plus,
+	Settings,
+	Trash2,
+	Unlock,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { redirect, useParams, useRouter } from "next/navigation";
@@ -557,13 +567,22 @@ const Home = () => {
 					</div>
 					<div className="flex fixed z-50 px-8 py-2 right-0 top-0 rounded-bl-xl justify-between gap-4 items-center bg-background/35 backdrop-blur-xl shadow-md">
 						<div className="flex gap-4 w-full justify-end ">
-							<DialogTrigger asChild>
-								<Button asChild size={"icon"} variant={"ghost"}>
-									<div className="cursor-pointer rounded-full">
-										<MoreHorizontal className="h-4 w-4" />
-									</div>
-								</Button>
-							</DialogTrigger>
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<DialogTrigger asChild>
+											<Button asChild size={"icon"} variant={"ghost"}>
+												<div className="cursor-pointer rounded-full">
+													<Settings className="h-6 w-6" />
+												</div>
+											</Button>
+										</DialogTrigger>
+									</TooltipTrigger>
+									<TooltipContent sideOffset={12} side="bottom">
+										<p>settings</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
 
 							<DialogContent className="max-w-sm">
 								<DialogHeader>
@@ -629,6 +648,33 @@ const Home = () => {
 							</DialogContent>
 
 							<div className="bg-black/90 w-[1px] rounded-full" />
+
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											asChild
+											size={"icon"}
+											variant={"ghost"}
+											className="cursor-pointer "
+											onClick={() => {
+												changePalette();
+											}}
+										>
+											<div className="cursor-pointer ">
+												{/* <Plus className="h-6 w-6" /> */}
+												<Dices className="h-6 w-6" />
+											</div>
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent sideOffset={12} side="bottom">
+										<p>randomize palette</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+
+							<div className="bg-black/90 w-[1px] rounded-full" />
+
 							<Button asChild onClick={() => addColor()}>
 								<div className="cursor-pointer rounded-full">
 									Add a color
@@ -659,70 +705,71 @@ const Home = () => {
 								`}
 							style={{ background: color.color }}
 						>
-							<div></div>
 							<div className="flex group flex-col items-center w-full h-full justify-end space-y-8 hover:opacity-100 transition-all">
-								{/* Trash Icon */}
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<div
-												onClick={() => removeColor(color.index)}
-												className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-											>
-												<Trash2 className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-											</div>
-										</TooltipTrigger>
-										<TooltipContent sideOffset={-24} side="bottom">
-											<p>remove color</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
+								<div>
+									{/* Trash Icon */}
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<div
+													onClick={() => removeColor(color.index)}
+													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
+												>
+													<Trash2 className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+												</div>
+											</TooltipTrigger>
+											<TooltipContent sideOffset={12} side="bottom">
+												<p>remove color</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
 
-								{/* Copy Icon */}
-								<TooltipProvider>
-									<Tooltip delayDuration={500}>
-										<TooltipTrigger asChild>
-											<div
-												onClick={() => {
-													navigator.clipboard.writeText(
-														color.color
-															.split("")
-															.filter((letter: string) => letter != "#")
-															.join("")
-													);
-													toast.success("Copied to clipboard!");
-												}}
-												className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-											>
-												<Copy className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-											</div>
-										</TooltipTrigger>
-										<TooltipContent sideOffset={-24} side="bottom">
-											<p>copy hex</p>
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
+									{/* Copy Icon */}
+									<TooltipProvider>
+										<Tooltip delayDuration={500}>
+											<TooltipTrigger asChild>
+												<div
+													onClick={() => {
+														navigator.clipboard.writeText(
+															color.color
+																.split("")
+																.filter((letter: string) => letter != "#")
+																.join("")
+														);
+														toast.success("Copied to clipboard!");
+													}}
+													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
+												>
+													<Copy className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+												</div>
+											</TooltipTrigger>
+											<TooltipContent sideOffset={12} side="bottom">
+												<p>copy hex</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
 
-								{/* Lock Icon */}
-								<TooltipProvider>
-									<Tooltip>
-										<TooltipTrigger asChild>
-											<div
-												onClick={() => handleLock(color.color)}
-												className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-											>
-												{color.locked ? (
-													<Lock className="h-6 w-6 scale-125 cursor-pointer" />
-												) : (
-													<Unlock className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-												)}
-											</div>
-										</TooltipTrigger>
-										<TooltipContent sideOffset={-24} side="bottom">
-											{color.locked ? <p>unlock color</p> : <p>lock color</p>}
-										</TooltipContent>
-									</Tooltip>
-								</TooltipProvider>
+									{/* Lock Icon */}
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<div
+													onClick={() => handleLock(color.color)}
+													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
+												>
+													{color.locked ? (
+														<Lock className="h-6 w-6 scale-125 cursor-pointer" />
+													) : (
+														<Unlock className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+													)}
+												</div>
+											</TooltipTrigger>
+											<TooltipContent sideOffset={12} side="bottom">
+												{color.locked ? <p>unlock color</p> : <p>lock color</p>}
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+								</div>
 							</div>
 
 							<div className="space-y-4 select-none items-end">
