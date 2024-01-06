@@ -1,16 +1,14 @@
 "use client";
 
-// TODO: add popup to have user accept cookies (react-cookie)
-// TODO: add isolate and smooth color transition settings to cookies
 // TODO: add drag and drop functionality to reorder colors (maybe use react-beautiful-dnd)
-
 // TODO: update styling for mobile view
-// TODO: add tooltips to icons and settings
 
-// TODO: add a function which checks if a color is dark enough, and if so only returns shades that are ligher than the color. should do the same thing if a color is light enough, except return darker shades
-
-// FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
 // FIXED: cant have both transitions at the same time
+// FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
+// DONE: add tooltips to icons and settings
+// DONE: add popup to have user accept cookies
+// DONE: add isolate and smooth color transition settings to cookies
+// DONE: add a function which checks if a color is dark enough, and if so only returns shades that are ligher than the color. should do the same thing if a color is light enough, except return darker shades
 // DONE: add a color picker to change colors when hex is clicked
 // DONE: add isolate colors and smooth color transition
 // DONE: PUT BANNER IN IF NO COOKIES ARE ALLOWED YET
