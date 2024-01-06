@@ -776,9 +776,7 @@ const Home = () => {
 													document.getElementsByClassName("action-icon");
 
 												for (let i = 0; i < icons.length; i++) {
-													if (!icons.item(i)?.classList.contains("locked")) {
-														icons.item(i)?.classList.toggle("hidden");
-													}
+													icons.item(i)?.classList.toggle("hidden");
 												}
 											}}
 										>
@@ -929,7 +927,7 @@ const Home = () => {
 														setShadesHandlerTrigger("open");
 														openShadesHandler(color.index);
 													}}
-													className="hidden rounded-full cursor-pointer md:flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
+													className="opacity-0 fixed md:static rounded-full cursor-pointer md:flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
 												>
 													<Grid className="h-6 w-6 group-hover:opacity-100 md:opacity-0 transition-opacity overflow-visible" />
 												</div>
