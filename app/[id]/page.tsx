@@ -532,7 +532,7 @@ const Home = () => {
 			<Dialog>
 				<>
 					<div className="fixed z-50 px-8 py-2 flex flex-col gap-2 left-0 top-0 rounded-br-xl bg-background/35 backdrop-blur-xl shadow-md">
-						<p className="font-black text-2xl tracking-tight">colorandom</p>
+						<p className="font-black text-2xl tracking-tight">re: coolors</p>
 						<p className="min-w-fit text-sm text-foreground">
 							Press the spacebar to generate a color palette!
 						</p>
