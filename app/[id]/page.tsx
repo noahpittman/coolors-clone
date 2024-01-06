@@ -421,9 +421,15 @@ const Home = () => {
 		) {
 			setCookiesEnabled(true);
 
-			cookies.set("isolate", "false");
-			cookies.set("smoothColorChange", "false");
-			cookies.set("secondary", "name");
+			cookies.set("isolate", "false", {
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+			});
+			cookies.set("smoothColorChange", "false", {
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+			});
+			cookies.set("secondary", "name", {
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+			});
 			setSecondary("name");
 		}
 
@@ -447,23 +453,33 @@ const Home = () => {
 			}
 
 			if (secondary == "name" && cookieStore.secondary != "name") {
-				cookies.set("secondary", "name");
+				cookies.set("secondary", "name", {
+					expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+				});
 				setSecondary("name");
 			}
 			if (secondary == "rgb" && cookieStore.secondary != "rgb") {
-				cookies.set("secondary", "rgb");
+				cookies.set("secondary", "rgb", {
+					expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+				});
 				setSecondary("rgb");
 			}
 			if (secondary == "hsl" && cookieStore.secondary != "hsl") {
-				cookies.set("secondary", "hsl");
+				cookies.set("secondary", "hsl", {
+					expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+				});
 				setSecondary("hsl");
 			}
 			if (secondary == "cmyk" && cookieStore.secondary != "cmyk") {
-				cookies.set("secondary", "cmyk");
+				cookies.set("secondary", "cmyk", {
+					expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+				});
 				setSecondary("cmyk");
 			}
 			if (secondary == "lab" && cookieStore.secondary != "lab") {
-				cookies.set("secondary", "lab");
+				cookies.set("secondary", "lab", {
+					expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+				});
 				setSecondary("lab");
 			}
 		}
@@ -518,7 +534,9 @@ const Home = () => {
 							<AlertDialogAction autoFocus asChild>
 								<Button
 									onClick={() => {
-										cookies.set("cookiesAllowed", "true");
+										cookies.set("cookiesAllowed", "true", {
+											expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+										});
 										setCookiesEnabled(true);
 									}}
 								>
@@ -579,7 +597,12 @@ const Home = () => {
 										checked={isolate}
 										onClick={() => {
 											setIsolate(!isolate);
-											cookiesEnabled && cookies.set("isolate", `${!isolate}`);
+											cookiesEnabled &&
+												cookies.set("isolate", `${!isolate},`, {
+													expires: new Date(
+														Date.now() + 1000 * 60 * 60 * 24 * 7
+													),
+												});
 										}}
 									/>
 								</div>
@@ -593,7 +616,12 @@ const Home = () => {
 											cookiesEnabled &&
 												cookies.set(
 													"smoothColorChange",
-													`${!smoothColorChange}`
+													`${!smoothColorChange}`,
+													{
+														expires: new Date(
+															Date.now() + 1000 * 60 * 60 * 24 * 7
+														),
+													}
 												);
 										}}
 									/>
