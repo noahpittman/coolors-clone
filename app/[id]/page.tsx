@@ -1,7 +1,9 @@
 "use client";
 
 // TODO: add drag and drop functionality to reorder colors (maybe use react-beautiful-dnd)
-// TODO: update styling for mobile view
+// IN PROGRESS: update styling for mobile view
+// TODO: fix shades for mobile view
+// TODO: adjust cookie banner for mobile view
 
 // FIXED: cant have both transitions at the same time
 // FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
@@ -18,9 +20,10 @@ import { Button } from "@/components/ui/button";
 import {
 	Copy,
 	Dices,
+	Eye,
+	EyeOff,
 	Grid,
 	Lock,
-	MoreHorizontal,
 	Plus,
 	Settings,
 	Trash2,
@@ -62,7 +65,6 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogDescription,
-	AlertDialogTrigger,
 	AlertDialogContent,
 	AlertDialogAction,
 	AlertDialogCancel,
@@ -79,6 +81,8 @@ const Home = () => {
 	const cookies = useCookies();
 	const initSecondary = cookies.get("secondary");
 	const [isMounted, setIsMounted] = useState<boolean>(false);
+
+	const [showIconsMobile, setShowIconsMobile] = useState<boolean>(true);
 
 	const [shadesHandlerTrigger, setShadesHandlerTrigger] = useState<
 		"closed" | "open"
@@ -671,14 +675,14 @@ const Home = () => {
 			)}
 			<Dialog>
 				<>
-					<div className="fixed z-50 px-8 py-2 flex flex-col gap-2 left-0 top-0 rounded-br-xl bg-background/35 backdrop-blur-xl shadow-md">
+					<div className="fixed z-50 px-8 py-2 hidden md:flex flex-col gap-2 left-0 top-0 rounded-br-xl bg-background/35 backdrop-blur-xl shadow-md">
 						<p className="font-black text-2xl tracking-tight">re: coolors</p>
 						<p className="min-w-fit text-sm text-foreground">
 							Press the spacebar to generate a color palette!
 						</p>
 					</div>
-					<div className="flex fixed z-50 px-8 py-2 right-0 top-0 rounded-bl-xl justify-between gap-4 items-center bg-background/35 backdrop-blur-xl shadow-md">
-						<div className="flex gap-4 w-full justify-end ">
+					<div className="flex fixed z-50 px-3 py-4 md:px-4 md:py-2 right-0 top-1/3 scale-90 md:scale-100 origin-right md:top-0 rounded-bl-xl rounded-tl-xl md:rounded-tl-none justify-between gap-4 items-center bg-background/35 backdrop-blur-xl shadow-md">
+						<div className="flex flex-col md:flex-row gap-4 w-full justify-end ">
 							<TooltipProvider>
 								<Tooltip>
 									<TooltipTrigger asChild>
@@ -696,7 +700,7 @@ const Home = () => {
 								</Tooltip>
 							</TooltipProvider>
 
-							<DialogContent className="max-w-sm">
+							<DialogContent className="max-w-[calc(100vw-4rem)] md:max-w-screen-sm">
 								<DialogHeader>
 									<DialogTitle>Settings</DialogTitle>
 									<Separator className="w-full" />
@@ -759,7 +763,42 @@ const Home = () => {
 								</div>
 							</DialogContent>
 
-							<div className="bg-black/90 w-[1px] rounded-full" />
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											asChild
+											size={"icon"}
+											variant={"ghost"}
+											className="cursor-pointer md:hidden"
+											onClick={() => {
+												setShowIconsMobile(!showIconsMobile);
+												const icons =
+													document.getElementsByClassName("action-icon");
+
+												for (let i = 0; i < icons.length; i++) {
+													if (!icons.item(i)?.classList.contains("locked")) {
+														icons.item(i)?.classList.toggle("hidden");
+													}
+												}
+											}}
+										>
+											<div className="cursor-pointer ">
+												{showIconsMobile ? (
+													<Eye className="h-6 w-6" />
+												) : (
+													<EyeOff className="h-6 w-6" />
+												)}
+											</div>
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent sideOffset={12} side="bottom">
+										<p>view icons</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
+
+							<div className="bg-black/25 w-full h-[1px] md:h-auto md:w-[1px] rounded-full" />
 
 							<TooltipProvider>
 								<Tooltip>
@@ -777,7 +816,6 @@ const Home = () => {
 											}}
 										>
 											<div className="cursor-pointer ">
-												{/* <Plus className="h-6 w-6" /> */}
 												<Dices className="h-6 w-6" />
 											</div>
 										</Button>
@@ -788,19 +826,33 @@ const Home = () => {
 								</Tooltip>
 							</TooltipProvider>
 
-							<div className="bg-black/90 w-[1px] rounded-full" />
-
-							<Button asChild onClick={() => addColor()}>
-								<div className="cursor-pointer rounded-full">
-									Add a color
-									<Plus className="h-4 w-4 ml-2" />
-								</div>
-							</Button>
+							<div className="bg-black/25 w-full h-[1px] md:h-auto md:w-[1px] rounded-full" />
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											id="randomizeButton"
+											asChild
+											size={"icon"}
+											variant={"ghost"}
+											className="cursor-pointer "
+											onClick={() => addColor()}
+										>
+											<div className="cursor-pointer ">
+												<Plus className="h-6 w-6" />
+											</div>
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent sideOffset={12} side="bottom">
+										<p>add color</p>
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
 						</div>
 					</div>
 				</>
 
-				<div className="grid grid-flow-col auto-cols-fr">
+				<div className="max-h-screen grid md:grid-flow-col grid-flow-row md:auto-cols-fr auto-rows-fr">
 					{palette.map((color) => (
 						<div
 							key={color.index}
@@ -813,7 +865,7 @@ const Home = () => {
 							{/* Shades */}
 							<div
 								id={`color-${color.index}-shades`}
-								className="hidden uppercase font-semibold tracking-wide auto-rows-fr grid-rows-[25] grid-flow-row py-24 px-2 h-full"
+								className="hidden uppercase  font-semibold tracking-wide auto-rows-fr grid-rows-[25] grid-flow-row py-24 px-2 h-full"
 							>
 								{getShades(color.color).map((hex) => (
 									<div
@@ -843,110 +895,104 @@ const Home = () => {
 								))}
 							</div>
 
-							{/* Color */}
+							{/* Colors */}
 							<div
 								id={`color-${color.index}`}
-								className={`flex justify-end h-full pb-20 flex-col space-y-8 items-center 
+								className={`flex md:justify-end h-full md:pb-20 md:flex-col md:items-center p-2 w-full 
 									${isLight(color.color) ? "text-black/75" : "text-white/75"}
 									
 									colorCard
 								`}
 							>
-								<div className="flex group flex-col items-center w-full h-full justify-end space-y-8 hover:opacity-100 transition-all">
-									<div>
-										{/* Trash Icon */}
-										<TooltipProvider>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<div
-														onClick={() => removeColor(color.index)}
-														className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-													>
-														<Trash2 className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-													</div>
-												</TooltipTrigger>
-												<TooltipContent sideOffset={12} side="bottom">
-													<p>remove color</p>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
-										{/* Trash Icon */}
-										<TooltipProvider>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<div
-														onClick={() => {
-															setShadesHandlerTrigger("open");
-															openShadesHandler(color.index);
-														}}
-														className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-													>
-														<Grid className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-													</div>
-												</TooltipTrigger>
-												<TooltipContent sideOffset={12} side="bottom">
-													<p>view shades</p>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
+								<div className="flex scale-[80%] md:scale-100 md:pb-12 absolute right-0 pr-14 md:pr-0 md:static group md:flex-col items-center md:w-full md:h-full justify-end transition-all">
+									{/* Trash Icon */}
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<div
+													onClick={() => removeColor(color.index)}
+													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
+												>
+													<Trash2 className="h-6 w-6 group-hover:opacity-100 md:opacity-0 transition-opacity overflow-visible" />
+												</div>
+											</TooltipTrigger>
+											<TooltipContent sideOffset={12} side="bottom">
+												<p>remove color</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
+									{/* Trash Icon */}
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<div
+													onClick={() => {
+														setShadesHandlerTrigger("open");
+														openShadesHandler(color.index);
+													}}
+													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
+												>
+													<Grid className="h-6 w-6 group-hover:opacity-100 md:opacity-0 transition-opacity overflow-visible" />
+												</div>
+											</TooltipTrigger>
+											<TooltipContent sideOffset={12} side="bottom">
+												<p>view shades</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
 
-										{/* Copy Icon */}
-										<TooltipProvider>
-											<Tooltip delayDuration={500}>
-												<TooltipTrigger asChild>
-													<div
-														onClick={() => {
-															navigator.clipboard.writeText(
-																color.color
-																	.split("")
-																	.filter((letter: string) => letter != "#")
-																	.join("")
-															);
-															toast.success("Copied to clipboard!");
-														}}
-														className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-													>
-														<Copy className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-													</div>
-												</TooltipTrigger>
-												<TooltipContent sideOffset={12} side="bottom">
-													<p>copy hex</p>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
+									{/* Copy Icon */}
+									<TooltipProvider>
+										<Tooltip delayDuration={500}>
+											<TooltipTrigger asChild>
+												<div
+													onClick={() => {
+														navigator.clipboard.writeText(
+															color.color
+																.split("")
+																.filter((letter: string) => letter != "#")
+																.join("")
+														);
+														toast.success("Copied to clipboard!");
+													}}
+													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
+												>
+													<Copy className="h-6 w-6 group-hover:opacity-100 md:opacity-0 transition-opacity overflow-visible" />
+												</div>
+											</TooltipTrigger>
+											<TooltipContent sideOffset={12} side="bottom">
+												<p>copy hex</p>
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
 
-										{/* Lock Icon */}
-										<TooltipProvider>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<div
-														onClick={() => handleLock(color.color)}
-														className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-													>
-														{color.locked ? (
-															<Lock className="h-6 w-6 scale-125 cursor-pointer" />
-														) : (
-															<Unlock className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-														)}
-													</div>
-												</TooltipTrigger>
-												<TooltipContent sideOffset={12} side="bottom">
+									{/* Lock Icon */}
+									<TooltipProvider>
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<div
+													onClick={() => handleLock(color.color)}
+													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
+												>
 													{color.locked ? (
-														<p>unlock color</p>
+														<Lock className="h-6 w-6 scale-125 cursor-pointer" />
 													) : (
-														<p>lock color</p>
+														<Unlock className="h-6 w-6 group-hover:opacity-100 md:opacity-0 transition-opacity overflow-visible" />
 													)}
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
-									</div>
+												</div>
+											</TooltipTrigger>
+											<TooltipContent sideOffset={12} side="bottom">
+												{color.locked ? <p>unlock color</p> : <p>lock color</p>}
+											</TooltipContent>
+										</Tooltip>
+									</TooltipProvider>
 								</div>
 
-								<div className="space-y-4 select-none items-end">
+								<div className="md:space-y-4 select-none items-end">
 									<DropdownMenu>
 										<DropdownMenuTrigger
 											asChild
-											className={`text-2xl cursor-pointer hover:bg-accent/10 py-1 font-semibold uppercase w-[7ch] rounded-md text-center ${
+											className={`md:text-2xl text-lg cursor-pointer hover:bg-accent/10 py-1 font-semibold uppercase w-[7ch] rounded-md text-center ${
 												isLight(color.color)
 													? "hover:bg-black/10"
 													: "hover:bg-black/25"
@@ -996,17 +1042,15 @@ const Home = () => {
 														setPalette(buffer);
 													}}
 													alpha={false}
-													className="max-w-[9ch] uppercase border border-border p-1 px-2 rounded-md"
+													className="md:max-w-[9ch] uppercase border border-border p-1 px-2 rounded-md"
 												/>
 											</div>
 											<div className="w-4 h-4 bg-blue"></div>
 										</DropdownMenuContent>
 									</DropdownMenu>
 
-									{/* TODO: add variants for secondary display 
-								(name, rgb, hsl, cmyk) */}
-									<DialogTrigger asChild>
-										<p className="capitalize cursor-pointer font-medium text-sm text-wrap text-center opacity-75 max-w-[12ch] mx-auto max-h-5">
+									<DialogTrigger asChild className="px-2 flex ">
+										<p className="capitalize cursor-pointer font-medium text-sm text-wrap md:text-center opacity-75 w-fit md:max-w-[12ch] md:mx-auto max-h-5">
 											{secondary == "name" && GetColorName(color.color)}
 											{secondary == "rgb" && hexToRGB(color.color)}
 											{secondary == "hsl" && hexToHSL(color.color)}
