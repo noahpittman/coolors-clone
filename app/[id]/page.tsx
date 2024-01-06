@@ -5,13 +5,14 @@
 // TODO: add drag and drop functionality to reorder colors (maybe use react-beautiful-dnd)
 
 // TODO: update styling for mobile view
-// TODO: update styling on color picker
+// TODO: add tooltips to icons and settings
 
 // FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
 // FIXED: cant have both transitions at the same time
 // DONE: add a color picker to change colors when hex is clicked
 // DONE: add isolate colors and smooth color transition
 // DONE: PUT BANNER IN IF NO COOKIES ARE ALLOWED YET
+// DONE: update styling on color picker
 
 import { Button } from "@/components/ui/button";
 import { Copy, Lock, MoreHorizontal, Plus, Trash2, Unlock } from "lucide-react";
@@ -19,6 +20,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { redirect, useParams, useRouter } from "next/navigation";
 import { GetColorName } from "hex-color-to-color-name";
+import { ColorTranslator } from "colortranslator";
 import {
 	Tooltip,
 	TooltipContent,
@@ -55,17 +57,26 @@ import {
 	AlertDialogAction,
 	AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 const Home = () => {
+	const cookies = useCookies();
+	const initSecondary = cookies.get("secondary");
 	const [isMounted, setIsMounted] = useState<boolean>(false);
+
+	const [secondary, setSecondary] = useState<any>(initSecondary);
 
 	// store the palette in state
 	const [palette, setPalette] = useState<any[]>([]);
 
 	const [isolate, setIsolate] = useState<boolean>(false);
 	const [smoothColorChange, setSmoothColorChange] = useState<boolean>(false);
-
-	const cookies = useCookies();
 
 	// get the palette from the url
 	const { id } = useParams();
@@ -310,6 +321,63 @@ const Home = () => {
 		return true;
 	};
 
+	// create a function to convert a hex color to rgb, returns a string
+	const hexToRGB = (hex: string) => {
+		const rgbArray = ColorTranslator.toRGB(hex).split(" ");
+		const r = rgbArray[0].slice(4, -1);
+		const g = rgbArray[1].slice(0, -1);
+		const b = rgbArray[2].slice(0, -1);
+		const rgb = [r, g, b].map((value: string) => {
+			if (Number.isNaN(parseInt(value))) return "0";
+			return parseInt(value);
+		});
+
+		return rgb.join(", ");
+	};
+
+	// create a function to convert a hex color to hsl, returns a string
+	const hexToHSL = (hex: string) => {
+		const hslArray = ColorTranslator.toHSL(hex).split(" ");
+		const h = hslArray[0].slice(4, -1);
+		const s = hslArray[1].slice(0, -1);
+		const l = hslArray[2].slice(0, -1);
+		const hsl = [h, s, l].map((value: string) => {
+			if (Number.isNaN(parseInt(value))) return "0";
+			return parseInt(value);
+		});
+
+		return hsl.join(", ");
+	};
+
+	// create a function to convert a hex color to cmyk, returns a string
+	const hexToCMYK = (hex: string) => {
+		const cmykArray = ColorTranslator.toCMYK(hex).split(" ");
+		const c = cmykArray[0].slice(4, -1);
+		const m = cmykArray[1].slice(0, -1);
+		const y = cmykArray[2].slice(0, -1);
+		const k = cmykArray[3].slice(0, -1);
+		const cmyk = [c, m, y, k].map((value: string) => {
+			if (Number.isNaN(parseInt(value))) return "0";
+			return parseInt(value);
+		});
+
+		return cmyk.join(", ");
+	};
+
+	// create a function to convert a hex color to lab, returns a string
+	const hexToLAB = (hex: string) => {
+		const labArray = ColorTranslator.toCIELab(hex).split(" ");
+		const l = labArray[0].slice(4, -1);
+		const a = labArray[1].slice(0, -1);
+		const b = labArray[2].slice(0, -1);
+		const lab = [l, a, b].map((value: string) => {
+			if (Number.isNaN(parseInt(value))) return "0";
+			return parseInt(value);
+		});
+
+		return lab.join(", ");
+	};
+
 	// validate the palette on page load and when the url changes and add event listener to randomizeButton
 	useEffect(() => {
 		setIsMounted(true);
@@ -333,57 +401,87 @@ const Home = () => {
 	useEffect(() => {
 		const cookieStore = cookies.get();
 
-		// check if cookies are enabled
+		// check if cookie preference is set
 		if (cookieStore.cookiesAllowed == undefined) {
 			// console.log("Cookies are disabled");
 		}
 
-		// check if cookies are enabled
+		// if cookies are disabled, set cookies to disabled
 		if (cookieStore.cookiesAllowed == "false") {
 			setCookiesEnabled(false);
 			// console.log("Cookies are disabled");
 		}
 
-		// set cookies to state if they are enabled and set to true
-		if (cookieStore.cookiesAllowed == "true") {
-			// console.log("cookies are enabled");
+		// if cookies are enabled, but no settings are set, set cookies to default
+		if (
+			cookieStore.cookiesAllowed == "true" &&
+			cookieStore.isolate == undefined &&
+			cookieStore.smoothColorChange == undefined &&
+			cookieStore.secondary == undefined
+		) {
 			setCookiesEnabled(true);
 
-			// check if cookies are set and set them if they are not
-			if (cookieStore.isolate == undefined) {
-				cookies.set("isolate", "false");
-			}
-			if (cookieStore.smoothColorChange == undefined) {
-				cookies.set("smoothColorChange", "false");
-			}
-
-			// set cookies compared to state
-			if (isolate == true) {
-				cookies.set("isolate", "true");
-			}
-			if (smoothColorChange == true) {
-				cookies.set("smoothColorChange", "true");
-			}
-
-			// set cookies to state if they are enabled and set to true
-			if (cookieStore.isolate == "true") {
-				setIsolate(true);
-			}
-			if (cookieStore.smoothColorChange == "true") {
-				setSmoothColorChange(true);
-			}
+			cookies.set("isolate", "false");
+			cookies.set("smoothColorChange", "false");
+			cookies.set("secondary", "name");
+			setSecondary("name");
 		}
 
-		// console.log(cookieStore); // TEST line to log cookies
+		// if cookies are enabled and settings are set, set state to equal cookies
+		if (
+			cookieStore.cookiesAllowed == "true" &&
+			cookieStore.isolate != undefined &&
+			cookieStore.smoothColorChange != undefined &&
+			cookieStore.secondary != undefined
+		) {
+			setCookiesEnabled(true);
+
+			if (cookies.get("isolate") == "true" && isolate != true) {
+				setIsolate(true);
+			}
+			if (
+				cookies.get("smoothColorChange") == "true" &&
+				smoothColorChange != true
+			) {
+				setSmoothColorChange(true);
+			}
+
+			if (secondary == "name" && cookieStore.secondary != "name") {
+				cookies.set("secondary", "name");
+				setSecondary("name");
+			}
+			if (secondary == "rgb" && cookieStore.secondary != "rgb") {
+				cookies.set("secondary", "rgb");
+				setSecondary("rgb");
+			}
+			if (secondary == "hsl" && cookieStore.secondary != "hsl") {
+				cookies.set("secondary", "hsl");
+				setSecondary("hsl");
+			}
+			if (secondary == "cmyk" && cookieStore.secondary != "cmyk") {
+				cookies.set("secondary", "cmyk");
+				setSecondary("cmyk");
+			}
+			if (secondary == "lab" && cookieStore.secondary != "lab") {
+				cookies.set("secondary", "lab");
+				setSecondary("lab");
+			}
+		}
+		console.log(cookieStore); // TEST line to log cookies
+		console.log(secondary); // TEST line to log secondary
+
 		// cookies.remove("cookiesAllowed"); // TEST line to remove cookies
-	}, [isolate, smoothColorChange, cookiesEnabled]);
+		// cookies.remove("isolate"); // TEST line to remove cookies
+		// cookies.remove("smoothColorChange"); // TEST line to remove cookies
+		// cookies.remove("secondary"); // TEST line to remove cookies
+	}, [isolate, smoothColorChange, secondary, cookiesEnabled]);
 
 	useEffect(() => {
 		history.replaceState(null, "", hexSetToUrl(palette));
 	}, [palette]);
 
 	return (
-		<div className="grid grid-rows-[auto_auto_1fr] select-none min-h-screen grid-flow-row">
+		<div className="grid grid-rows-[repeat(1fr)] select-none min-h-screen grid-flow-row">
 			{isMounted && cookiesEnabled == undefined && (
 				<AlertDialog defaultOpen>
 					<AlertDialogContent>
@@ -432,68 +530,95 @@ const Home = () => {
 				</AlertDialog>
 			)}
 			<Dialog>
-				<div className="h-14 row px-4 flex justify-end gap-4 items-center border-b"></div>
-				<div className="h-14 row px-4 flex justify-between gap-4 items-center border-b">
-					<p className="min-w-fit text-muted-foreground">
-						Press the spacebar to generate a color palette!
-					</p>
-					<div className="flex gap-4 w-full justify-end ">
-						<DialogTrigger asChild>
-							<Button asChild size={"icon"} variant={"ghost"}>
+				<>
+					<div className="fixed z-50 px-8 py-2 flex flex-col gap-2 left-0 top-0 rounded-br-xl bg-background/35 backdrop-blur-xl shadow-md">
+						<p className="font-black text-2xl tracking-tight">colorandom</p>
+						<p className="min-w-fit text-sm text-foreground">
+							Press the spacebar to generate a color palette!
+						</p>
+					</div>
+					<div className="flex fixed z-50 px-8 py-2 right-0 top-0 rounded-bl-xl justify-between gap-4 items-center bg-background/35 backdrop-blur-xl shadow-md">
+						<div className="flex gap-4 w-full justify-end ">
+							<DialogTrigger asChild>
+								<Button asChild size={"icon"} variant={"ghost"}>
+									<div className="cursor-pointer rounded-full">
+										<MoreHorizontal className="h-4 w-4" />
+									</div>
+								</Button>
+							</DialogTrigger>
+
+							<DialogContent className="max-w-sm">
+								<DialogHeader>
+									<DialogTitle>Settings</DialogTitle>
+									<Separator className="w-full" />
+								</DialogHeader>
+								<div className=" text-muted-foreground font-medium flex justify-between items-center">
+									<p>Secondary info</p>
+									<Select
+										defaultValue={secondary}
+										onValueChange={(
+											value: "name" | "rgb" | "hsl" | "cmyk" | "lab"
+										) => setSecondary(value)}
+									>
+										<SelectTrigger className="w-[180px]">
+											<SelectValue placeholder={"Default: Name"} />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="name">Name</SelectItem>
+											<SelectItem value="rgb">RGB</SelectItem>
+											<SelectItem value="hsl">HSL</SelectItem>
+											<SelectItem value="cmyk">CMYK</SelectItem>
+											<SelectItem value="lab">LAB</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div className=" text-muted-foreground font-medium flex justify-between items-center">
+									<p>Isolate colors</p>
+									<Checkbox
+										className="scale-125"
+										checked={isolate}
+										onClick={() => {
+											setIsolate(!isolate);
+											cookiesEnabled && cookies.set("isolate", `${!isolate}`);
+										}}
+									/>
+								</div>
+								<div className=" text-muted-foreground font-medium flex justify-between items-center">
+									<p>Smooth color transition</p>
+									<Checkbox
+										className="scale-125"
+										checked={smoothColorChange}
+										onClick={() => {
+											setSmoothColorChange(!smoothColorChange);
+											cookiesEnabled &&
+												cookies.set(
+													"smoothColorChange",
+													`${!smoothColorChange}`
+												);
+										}}
+									/>
+								</div>
+							</DialogContent>
+
+							<div className="bg-black/90 w-[1px] rounded-full" />
+							<Button asChild onClick={() => addColor()}>
 								<div className="cursor-pointer rounded-full">
-									<MoreHorizontal className="h-4 w-4" />
+									Add a color
+									<Plus className="h-4 w-4 ml-2" />
 								</div>
 							</Button>
-						</DialogTrigger>
 
-						<DialogContent className="max-w-sm">
-							<DialogHeader>
-								<DialogTitle>Settings</DialogTitle>
-								<Separator className="w-full" />
-							</DialogHeader>
-							<div className=" text-muted-foreground font-medium flex justify-between items-center">
-								<p>Isolate colors</p>
-								<Checkbox
-									className="scale-125"
-									checked={isolate}
-									onClick={() => {
-										setIsolate(!isolate);
-										cookiesEnabled && cookies.set("isolate", `${!isolate}`);
-									}}
-								/>
-							</div>
-							<div className=" text-muted-foreground font-medium flex justify-between items-center">
-								<p>Smooth color transition</p>
-								<Checkbox
-									className="scale-125"
-									checked={smoothColorChange}
-									onClick={() => {
-										setSmoothColorChange(!smoothColorChange);
-										cookiesEnabled &&
-											cookies.set("smoothColorChange", `${!smoothColorChange}`);
-									}}
-								/>
-							</div>
-						</DialogContent>
-
-						<div className="bg-border w-[1px] rounded-full" />
-						<Button asChild onClick={() => addColor()}>
-							<div className="cursor-pointer rounded-full">
-								Add a color
-								<Plus className="h-4 w-4 ml-2" />
-							</div>
-						</Button>
-
-						{/* RANDOMIZE BUTTON */}
-						<Button
-							id="randomizeButton"
-							className={"hidden"}
-							onClick={changePalette}
-						>
-							randomize!
-						</Button>
+							{/* RANDOMIZE BUTTON */}
+							<Button
+								id="randomizeButton"
+								className={"hidden"}
+								onClick={changePalette}
+							>
+								randomize!
+							</Button>
+						</div>
 					</div>
-				</div>
+				</>
 
 				<div id="colors" className="grid grid-flow-col">
 					{palette.map((color) => (
@@ -507,20 +632,17 @@ const Home = () => {
 							style={{ background: color.color }}
 						>
 							<div></div>
-							<div className="flex flex-col items-center w-full h-full justify-end opacity-0 space-y-8 hover:opacity-100 transition-all">
+							<div className="flex group flex-col items-center w-full h-full justify-end space-y-8 hover:opacity-100 transition-all">
 								{/* Trash Icon */}
 								<TooltipProvider>
 									<Tooltip>
-										<TooltipTrigger>
-											<Button
-												asChild
-												className="rounded-full overflow-visible"
-												variant={"ghost"}
-												size={"icon"}
+										<TooltipTrigger asChild>
+											<div
 												onClick={() => removeColor(color.index)}
+												className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
 											>
-												<Trash2 className="h-10 w-10 p-2 cursor-pointer" />
-											</Button>
+												<Trash2 className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+											</div>
 										</TooltipTrigger>
 										<TooltipContent sideOffset={-24} side="bottom">
 											<p>remove color</p>
@@ -531,10 +653,8 @@ const Home = () => {
 								{/* Copy Icon */}
 								<TooltipProvider>
 									<Tooltip delayDuration={500}>
-										<TooltipTrigger>
-											<Button
-												asChild
-												className="rounded-full overflow-visible"
+										<TooltipTrigger asChild>
+											<div
 												onClick={() => {
 													navigator.clipboard.writeText(
 														color.color
@@ -544,11 +664,10 @@ const Home = () => {
 													);
 													toast.success("Copied to clipboard!");
 												}}
-												variant={"ghost"}
-												size={"icon"}
+												className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
 											>
-												<Copy className="h-10 w-10 p-2 cursor-pointer" />
-											</Button>
+												<Copy className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+											</div>
 										</TooltipTrigger>
 										<TooltipContent sideOffset={-24} side="bottom">
 											<p>copy hex</p>
@@ -559,20 +678,17 @@ const Home = () => {
 								{/* Lock Icon */}
 								<TooltipProvider>
 									<Tooltip>
-										<TooltipTrigger>
-											<Button
-												asChild
+										<TooltipTrigger asChild>
+											<div
 												onClick={() => handleLock(color.color)}
-												variant={"ghost"}
-												size={"icon"}
-												className="rounded-full overflow-visible"
+												className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
 											>
 												{color.locked ? (
-													<Lock className="h-10 w-10 p-2 cursor-pointer" />
+													<Lock className="h-6 w-6 scale-125 cursor-pointer" />
 												) : (
-													<Unlock className="h-10 w-10 p-2 cursor-pointer" />
+													<Unlock className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
 												)}
-											</Button>
+											</div>
 										</TooltipTrigger>
 										<TooltipContent sideOffset={-24} side="bottom">
 											{color.locked ? <p>unlock color</p> : <p>lock color</p>}
@@ -585,7 +701,7 @@ const Home = () => {
 								<DropdownMenu>
 									<DropdownMenuTrigger
 										asChild
-										className={`text-3xl cursor-pointer hover:bg-accent/10 py-1 font-semibold uppercase w-[7ch] rounded-md text-center ${
+										className={`text-2xl cursor-pointer hover:bg-accent/10 py-1 font-semibold uppercase w-[7ch] rounded-md text-center ${
 											isLight(color.color)
 												? "hover:bg-black/10"
 												: "hover:bg-black/25"
@@ -645,8 +761,12 @@ const Home = () => {
 								{/* TODO: add variants for secondary display 
 								(name, rgb, hsl, cmyk) */}
 								<DialogTrigger asChild>
-									<p className="capitalize cursor-pointer font-medium text-sm text-nowrap text-center opacity-75">
-										{GetColorName(color.color)}
+									<p className="capitalize cursor-pointer font-medium text-sm text-wrap text-center opacity-75 max-w-[12ch] mx-auto max-h-5">
+										{secondary == "name" && GetColorName(color.color)}
+										{secondary == "rgb" && hexToRGB(color.color)}
+										{secondary == "hsl" && hexToHSL(color.color)}
+										{secondary == "cmyk" && hexToCMYK(color.color)}
+										{secondary == "lab" && hexToLAB(color.color)}
 									</p>
 								</DialogTrigger>
 							</div>

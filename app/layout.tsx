@@ -20,7 +20,9 @@ export default function RootLayout({
 		<html lang="en">
 			<CookiesProvider>
 				<Toaster position="top-center" />
-				<body className={outfit.className}>{children}</body>
+				<body className={(outfit.className, "overflow-hidden")}>
+					{children}
+				</body>
 			</CookiesProvider>
 		</html>
 	);
