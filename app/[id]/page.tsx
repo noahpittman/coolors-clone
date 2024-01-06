@@ -622,7 +622,7 @@ const Home = () => {
 	};
 
 	return (
-		<div className="grid grid-rows-[repeat(1fr)] select-none min-h-screen grid-flow-row">
+		<div className="grid grid-rows-[repeat(1fr)] select-none min-h-[100svh] md:min-h-screen grid-flow-row">
 			{isMounted && cookiesEnabled == undefined && (
 				<AlertDialog defaultOpen>
 					<AlertDialogContent>
