@@ -7,6 +7,8 @@
 // TODO: update styling for mobile view
 // TODO: add tooltips to icons and settings
 
+// TODO: add a function which checks if a color is dark enough, and if so only returns shades that are ligher than the color. should do the same thing if a color is light enough, except return darker shades
+
 // FIXED: fix bug where re-render causes colors to unlock (shallow routing fix or alternative?) (fixed with history.replaceState)
 // FIXED: cant have both transitions at the same time
 // DONE: add a color picker to change colors when hex is clicked
@@ -79,6 +81,10 @@ const Home = () => {
 	const cookies = useCookies();
 	const initSecondary = cookies.get("secondary");
 	const [isMounted, setIsMounted] = useState<boolean>(false);
+
+	const [shadesHandlerTrigger, setShadesHandlerTrigger] = useState<
+		"closed" | "open"
+	>("closed");
 
 	const [secondary, setSecondary] = useState<any>(initSecondary);
 
@@ -253,7 +259,7 @@ const Home = () => {
 
 	// add event listener to randomizeButton to allow for spacebar to randomize
 	const keyDownHandler = (event: { keyCode: any }) => {
-		if (event.keyCode == "32") {
+		if (event.keyCode == "32" && shadesHandlerTrigger != "open") {
 			document.getElementById("randomizeButton")?.click();
 		}
 	};
@@ -399,11 +405,13 @@ const Home = () => {
 		}
 		setPalette(validateHexSet(id));
 
-		// add event listener to randomizeButton
-		document.addEventListener("keydown", keyDownHandler);
-		return () => {
-			document.removeEventListener("keydown", keyDownHandler);
-		};
+		if (shadesHandlerTrigger == "closed") {
+			// add event listener to randomizeButton
+			document.addEventListener("keydown", keyDownHandler);
+			return () => {
+				document.removeEventListener("keydown", keyDownHandler);
+			};
+		}
 	}, []);
 
 	// cookies on load
@@ -419,6 +427,7 @@ const Home = () => {
 		// if cookies are disabled, set cookies to disabled
 		if (cookieStore.cookiesAllowed == "false") {
 			setCookiesEnabled(false);
+			setSecondary("name");
 			// console.log("Cookies are disabled");
 		}
 
@@ -454,12 +463,19 @@ const Home = () => {
 
 			if (cookies.get("isolate") == "true" && isolate != true) {
 				setIsolate(true);
+			} else if (cookies.get("isolate") == "false" && isolate != false) {
+				setIsolate(false);
 			}
 			if (
 				cookies.get("smoothColorChange") == "true" &&
 				smoothColorChange != true
 			) {
 				setSmoothColorChange(true);
+			} else if (
+				cookies.get("smoothColorChange") == "false" &&
+				smoothColorChange != false
+			) {
+				setSmoothColorChange(false);
 			}
 
 			if (secondary == "name" && cookieStore.secondary != "name") {
@@ -493,8 +509,10 @@ const Home = () => {
 				setSecondary("lab");
 			}
 		}
-		console.log(cookieStore); // TEST line to log cookies
-		console.log(secondary); // TEST line to log secondary
+		// console.log(cookieStore); // TEST line to log cookies
+		// console.log(secondary); // TEST line to log secondary
+		// console.log(cookieStore.isolate);
+		// console.log(isolate);
 
 		// cookies.remove("cookiesAllowed"); // TEST line to remove cookies
 		// cookies.remove("isolate"); // TEST line to remove cookies
@@ -505,6 +523,102 @@ const Home = () => {
 	useEffect(() => {
 		history.replaceState(null, "", hexSetToUrl(palette));
 	}, [palette]);
+
+	// helper function to replace a color
+	const replaceColor = (index: number, hex: string) => {
+		const newPalette = palette.map((color) => {
+			if (color.index == index) {
+				return {
+					color: hex,
+					locked: color.locked,
+					index: color.index,
+				};
+			}
+			return color;
+		});
+		setPalette(newPalette);
+	};
+	// create a function to check if a color has a luma of less than 40, or greater than 230. if less than 40, return "dark", if greater than 230, return "light", if in between, return "neutral"
+	const getLuma = (color: string) => {
+		const hex = color.slice(1);
+		const r = parseInt(hex.slice(0, 2), 16);
+		const g = parseInt(hex.slice(2, 4), 16);
+		const b = parseInt(hex.slice(4, 6), 16);
+		const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+		if (luma < 30) return "dark";
+		else if (luma > 230) return "light";
+		else return "neutral";
+	};
+	const getShades = (color: string) => {
+		switch (getLuma(color)) {
+			case "dark":
+				return [...ColorTranslator.getTints(color, 24).reverse(), color];
+			case "light":
+				return [color, ...ColorTranslator.getShades(color, 24)];
+			default:
+				return [
+					...ColorTranslator.getTints(color, 12).reverse(),
+					color,
+					...ColorTranslator.getShades(color, 12),
+				];
+		}
+	};
+
+	// handler function to open shades
+	const openShadesHandler = (colorIndex: number) => {
+		setShadesHandlerTrigger("open");
+
+		// swap the color and shades divs
+		document.getElementById(`color-${colorIndex}`)?.classList.remove("flex");
+		document.getElementById(`color-${colorIndex}`)?.classList.add("hidden");
+
+		const colorCards = document.getElementsByClassName("colorCard");
+
+		for (let i = 0; i < colorCards.length; i++) {
+			colorCards.item(i)?.classList.add("hidden");
+		}
+
+		//
+		document
+			.getElementById(`color-${colorIndex}-shades`)
+			?.classList.remove("hidden");
+		document
+			.getElementById(`color-${colorIndex}-shades`)
+			?.classList.add("grid");
+
+		const colorToShade = palette.filter((color) => {
+			if (color.index == colorIndex) return color.color;
+		});
+
+		const shades = getShades(colorToShade[0]?.color);
+		// const shades = ColorTranslator.getShades(colorToShade[0]?.color, 25);
+		return shades;
+	};
+
+	// handler function to change color to selected shade and close shades
+	const closeShadesHandler = (colorIndex: number, hex: string) => {
+		setShadesHandlerTrigger("closed");
+
+		replaceColor(colorIndex, hex);
+
+		// swap the color and shades divs
+		document
+			.getElementById(`color-${colorIndex}-shades`)
+			?.classList.remove("grid");
+		document
+			.getElementById(`color-${colorIndex}-shades`)
+			?.classList.add("hidden");
+
+		const colorCards = document.getElementsByClassName("colorCard");
+
+		for (let i = 0; i < colorCards.length; i++) {
+			colorCards.item(i)?.classList.remove("hidden");
+		}
+
+		document.getElementById(`color-${colorIndex}`)?.classList.add("flex");
+		document.getElementById(`color-${colorIndex}`)?.classList.remove("hidden");
+	};
 
 	return (
 		<div className="grid grid-rows-[repeat(1fr)] select-none min-h-screen grid-flow-row">
@@ -617,7 +731,7 @@ const Home = () => {
 										onClick={() => {
 											setIsolate(!isolate);
 											cookiesEnabled &&
-												cookies.set("isolate", `${!isolate},`, {
+												cookies.set("isolate", `${!isolate}`, {
 													expires: new Date(
 														Date.now() + 1000 * 60 * 60 * 24 * 7
 													),
@@ -653,12 +767,15 @@ const Home = () => {
 								<Tooltip>
 									<TooltipTrigger asChild>
 										<Button
+											id="randomizeButton"
 											asChild
 											size={"icon"}
 											variant={"ghost"}
 											className="cursor-pointer "
 											onClick={() => {
-												changePalette();
+												shadesHandlerTrigger !== "open"
+													? changePalette()
+													: null;
 											}}
 										>
 											<div className="cursor-pointer ">
@@ -681,137 +798,173 @@ const Home = () => {
 									<Plus className="h-4 w-4 ml-2" />
 								</div>
 							</Button>
-
-							{/* RANDOMIZE BUTTON */}
-							<Button
-								id="randomizeButton"
-								className={"hidden"}
-								onClick={changePalette}
-							>
-								randomize!
-							</Button>
 						</div>
 					</div>
 				</>
 
-				<div id="colors" className="grid grid-flow-col">
+				<div className="grid grid-flow-col auto-cols-fr">
 					{palette.map((color) => (
 						<div
 							key={color.index}
-							className={`flex justify-end pb-20 flex-col space-y-8 items-center 
-									${isLight(color.color) ? "text-black/75" : "text-white/75"}
-									${isolate && "scale-[97%]"}
-									${smoothColorChange && "transition-colors"}
-								`}
 							style={{ background: color.color }}
+							className={`
+								${smoothColorChange && "transition-colors"} 
+								${isolate == true && "scale-[97%]"}
+							`}
 						>
-							<div className="flex group flex-col items-center w-full h-full justify-end space-y-8 hover:opacity-100 transition-all">
-								<div>
-									{/* Trash Icon */}
-									<TooltipProvider>
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<div
-													onClick={() => removeColor(color.index)}
-													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-												>
-													<Trash2 className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-												</div>
-											</TooltipTrigger>
-											<TooltipContent sideOffset={12} side="bottom">
-												<p>remove color</p>
-											</TooltipContent>
-										</Tooltip>
-									</TooltipProvider>
-
-									{/* Copy Icon */}
-									<TooltipProvider>
-										<Tooltip delayDuration={500}>
-											<TooltipTrigger asChild>
-												<div
-													onClick={() => {
-														navigator.clipboard.writeText(
-															color.color
-																.split("")
-																.filter((letter: string) => letter != "#")
-																.join("")
-														);
-														toast.success("Copied to clipboard!");
-													}}
-													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-												>
-													<Copy className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-												</div>
-											</TooltipTrigger>
-											<TooltipContent sideOffset={12} side="bottom">
-												<p>copy hex</p>
-											</TooltipContent>
-										</Tooltip>
-									</TooltipProvider>
-
-									{/* Lock Icon */}
-									<TooltipProvider>
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<div
-													onClick={() => handleLock(color.color)}
-													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
-												>
-													{color.locked ? (
-														<Lock className="h-6 w-6 scale-125 cursor-pointer" />
-													) : (
-														<Unlock className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
-													)}
-												</div>
-											</TooltipTrigger>
-											<TooltipContent sideOffset={12} side="bottom">
-												{color.locked ? <p>unlock color</p> : <p>lock color</p>}
-											</TooltipContent>
-										</Tooltip>
-									</TooltipProvider>
-								</div>
+							{/* Shades */}
+							<div
+								id={`color-${color.index}-shades`}
+								className="hidden uppercase font-semibold tracking-wide auto-rows-fr grid-rows-[25] grid-flow-row py-24 px-2 h-full"
+							>
+								{getShades(color.color).map((hex) => (
+									<div
+										className={` group
+									cursor-pointer w-full h-full text-center flex justify-center items-center
+									${
+										isLight(hex)
+											? "text-black/0 hover:text-black/75"
+											: "text-white/0 hover:text-white/75"
+									}
+								`}
+										onClick={() => closeShadesHandler(color.index, hex)}
+										style={{ background: hex }}
+									>
+										<div
+											id="currentShade-dot"
+											className={`w-2 h-2 rounded-full fixed group-hover:opacity-0
+										${isLight(hex) ? "bg-black/75" : "bg-white/75"}
+										${hex !== color.color && "opacity-0"}
+										`}
+										/>
+										<p>
+											{hex.split("").filter((letter: string) => letter != "#")}
+										</p>
+									</div>
+								))}
 							</div>
 
-							<div className="space-y-4 select-none items-end">
-								<DropdownMenu>
-									<DropdownMenuTrigger
-										asChild
-										className={`text-2xl cursor-pointer hover:bg-accent/10 py-1 font-semibold uppercase w-[7ch] rounded-md text-center ${
-											isLight(color.color)
-												? "hover:bg-black/10"
-												: "hover:bg-black/25"
-										}`}
-									>
-										<p>
-											{color.color
-												.split("")
-												.filter((letter: string) => letter != "#")
-												.join("")}
-										</p>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent className="p-4 rounded-lg space-y-2">
-										<HexColorPicker
-											color={color.color}
-											id="colorPicker"
-											className="custom-layout"
-											onChange={(newColor) => {
-												let buffer = palette.map((paletteColor) => {
-													if (paletteColor.index == color.index) {
-														return {
-															color: newColor,
-															locked: paletteColor.locked,
-															index: paletteColor.index,
-														};
-													}
-													return paletteColor;
-												});
-												setPalette(buffer);
-											}}
-										/>
-										<div>
-											<HexColorInput
-												prefixed
+							{/* Color */}
+							<div
+								id={`color-${color.index}`}
+								className={`flex justify-end h-full pb-20 flex-col space-y-8 items-center 
+									${isLight(color.color) ? "text-black/75" : "text-white/75"}
+									
+									colorCard
+								`}
+							>
+								<div className="flex group flex-col items-center w-full h-full justify-end space-y-8 hover:opacity-100 transition-all">
+									<div>
+										{/* Trash Icon */}
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<div
+														onClick={() => removeColor(color.index)}
+														className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
+													>
+														<Trash2 className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+													</div>
+												</TooltipTrigger>
+												<TooltipContent sideOffset={12} side="bottom">
+													<p>remove color</p>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+										{/* Trash Icon */}
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<div
+														onClick={() => {
+															setShadesHandlerTrigger("open");
+															openShadesHandler(color.index);
+														}}
+														className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
+													>
+														<Grid className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+													</div>
+												</TooltipTrigger>
+												<TooltipContent sideOffset={12} side="bottom">
+													<p>view shades</p>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+
+										{/* Copy Icon */}
+										<TooltipProvider>
+											<Tooltip delayDuration={500}>
+												<TooltipTrigger asChild>
+													<div
+														onClick={() => {
+															navigator.clipboard.writeText(
+																color.color
+																	.split("")
+																	.filter((letter: string) => letter != "#")
+																	.join("")
+															);
+															toast.success("Copied to clipboard!");
+														}}
+														className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
+													>
+														<Copy className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+													</div>
+												</TooltipTrigger>
+												<TooltipContent sideOffset={12} side="bottom">
+													<p>copy hex</p>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+
+										{/* Lock Icon */}
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<div
+														onClick={() => handleLock(color.color)}
+														className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25"
+													>
+														{color.locked ? (
+															<Lock className="h-6 w-6 scale-125 cursor-pointer" />
+														) : (
+															<Unlock className="h-6 w-6 group-hover:opacity-100 opacity-0 transition-opacity overflow-visible" />
+														)}
+													</div>
+												</TooltipTrigger>
+												<TooltipContent sideOffset={12} side="bottom">
+													{color.locked ? (
+														<p>unlock color</p>
+													) : (
+														<p>lock color</p>
+													)}
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									</div>
+								</div>
+
+								<div className="space-y-4 select-none items-end">
+									<DropdownMenu>
+										<DropdownMenuTrigger
+											asChild
+											className={`text-2xl cursor-pointer hover:bg-accent/10 py-1 font-semibold uppercase w-[7ch] rounded-md text-center ${
+												isLight(color.color)
+													? "hover:bg-black/10"
+													: "hover:bg-black/25"
+											}`}
+										>
+											<p>
+												{color.color
+													.split("")
+													.filter((letter: string) => letter != "#")
+													.join("")}
+											</p>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent className="p-4 rounded-lg space-y-2">
+											<HexColorPicker
 												color={color.color}
+												id="colorPicker"
+												className="custom-layout"
 												onChange={(newColor) => {
 													let buffer = palette.map((paletteColor) => {
 														if (paletteColor.index == color.index) {
@@ -825,25 +978,44 @@ const Home = () => {
 													});
 													setPalette(buffer);
 												}}
-												alpha={false}
-												className="max-w-[9ch] uppercase border border-border p-1 px-2 rounded-md"
 											/>
-										</div>
-										<div className="w-4 h-4 bg-blue"></div>
-									</DropdownMenuContent>
-								</DropdownMenu>
+											<div>
+												<HexColorInput
+													prefixed
+													color={color.color}
+													onChange={(newColor) => {
+														let buffer = palette.map((paletteColor) => {
+															if (paletteColor.index == color.index) {
+																return {
+																	color: newColor,
+																	locked: paletteColor.locked,
+																	index: paletteColor.index,
+																};
+															}
+															return paletteColor;
+														});
+														setPalette(buffer);
+													}}
+													alpha={false}
+													className="max-w-[9ch] uppercase border border-border p-1 px-2 rounded-md"
+												/>
+											</div>
+											<div className="w-4 h-4 bg-blue"></div>
+										</DropdownMenuContent>
+									</DropdownMenu>
 
-								{/* TODO: add variants for secondary display 
+									{/* TODO: add variants for secondary display 
 								(name, rgb, hsl, cmyk) */}
-								<DialogTrigger asChild>
-									<p className="capitalize cursor-pointer font-medium text-sm text-wrap text-center opacity-75 max-w-[12ch] mx-auto max-h-5">
-										{secondary == "name" && GetColorName(color.color)}
-										{secondary == "rgb" && hexToRGB(color.color)}
-										{secondary == "hsl" && hexToHSL(color.color)}
-										{secondary == "cmyk" && hexToCMYK(color.color)}
-										{secondary == "lab" && hexToLAB(color.color)}
-									</p>
-								</DialogTrigger>
+									<DialogTrigger asChild>
+										<p className="capitalize cursor-pointer font-medium text-sm text-wrap text-center opacity-75 max-w-[12ch] mx-auto max-h-5">
+											{secondary == "name" && GetColorName(color.color)}
+											{secondary == "rgb" && hexToRGB(color.color)}
+											{secondary == "hsl" && hexToHSL(color.color)}
+											{secondary == "cmyk" && hexToCMYK(color.color)}
+											{secondary == "lab" && hexToLAB(color.color)}
+										</p>
+									</DialogTrigger>
+								</div>
 							</div>
 						</div>
 					))}
