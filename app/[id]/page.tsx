@@ -1,8 +1,7 @@
 "use client";
 
 // TODO: add drag and drop functionality to reorder colors (maybe use react-beautiful-dnd)
-// IN PROGRESS: update styling for mobile view
-// TODO: fix shades for mobile view
+// DONE: update styling for mobile view
 // TODO: adjust cookie banner for mobile view
 
 // FIXED: cant have both transitions at the same time
@@ -930,7 +929,7 @@ const Home = () => {
 														setShadesHandlerTrigger("open");
 														openShadesHandler(color.index);
 													}}
-													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
+													className="hidden rounded-full cursor-pointer md:flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
 												>
 													<Grid className="h-6 w-6 group-hover:opacity-100 md:opacity-0 transition-opacity overflow-visible" />
 												</div>
