@@ -622,20 +622,25 @@ const Home = () => {
 	};
 
 	return (
-		<div className="grid grid-rows-[repeat(1fr)] select-none min-h-[100svh] md:min-h-screen grid-flow-row">
+		<div className="grid overflow-hidden grid-rows-[repeat(1fr)] select-none min-h-[100svh] md:min-h-screen grid-flow-row">
 			{isMounted && cookiesEnabled == undefined && (
 				<AlertDialog defaultOpen>
-					<AlertDialogContent>
+					<AlertDialogContent className="max-w-[calc(100vw-4rem)] md:max-w-screen-sm">
 						<div>
-							<AlertDialogHeader>
+							<AlertDialogHeader className="text-start">
 								<AlertDialogTitle>Cookies</AlertDialogTitle>
 								<AlertDialogDescription>
 									We use cookies to store your preferences for the generator. We
 									will never store or share your personal information. <br />
+									<br />
 									If you have any questions, please refer to our{" "}
-									<Button className="p-0" asChild variant={"link"}>
-										<Link href={"/"}>cookie policy.</Link>
-									</Button>
+									<Link
+										className="font-semibold text-black"
+										target="_blank"
+										href={"/cookie-policy"}
+									>
+										cookie policy.
+									</Link>
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 						</div>
