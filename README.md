@@ -2,7 +2,6 @@
 
 [Shade Shuffle](https://shadeshuffle.org) is a versatile and user-friendly tool designed for generating random color palettes at the simple click of a button. Inspired by [coolors.co](https://www.coolors.co).
 
-
 ## Features
 
 1. **Lock Specific Colors**: Allows users to lock specific colors to curate and customize your own color palettes.
