@@ -823,7 +823,7 @@ const Home = () => {
 											asChild
 											size={"icon"}
 											variant={"ghost"}
-											className="cursor-pointer "
+											className="cursor-pointer md:flex hidden"
 											onClick={() => {
 												handleLockAll();
 											}}
