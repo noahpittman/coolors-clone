@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Shade Shuffle
+
+[Shade Shuffle](https://shadeshuffle.org) is a versatile and user-friendly tool designed for generating random color palettes at the simple click of a button. Inspired by [coolors.co](https://www.coolors.co).
+
+## Features
+
+1. **Lock Specific Colors**: A unique feature that allows users to lock specific colors. This enables the users to curate and customize their own color palettes based on their individual preferences and requirements.
+2. **View Lighter and Darker Shades**: Provides the option for users to view both lighter and darker shades of any selected color. This feature proves to be particularly useful for individuals who are looking to explore and understand the different shades of a specific color.
+3. **Select Your Own Colors**: Gives users the freedom to select their own colors. This can be done using a hex code or by using a color picker, providing a high level of customization.
+4. **Comprehensive Color Information Tool**: It's not just a color generator, Shade Shuffle also displays detailed color information in various formats, including hex, rgb (red, green, blue), hsl (hue, saturation, lightness), cmyk (cyan, magenta, yellow, key/black), and lab (lightness, a-green/red, b-blue/yellow). This caters to both beginners who are just starting out with color theory, as well as professionals who need detailed color information.
+
+# Shade Shuffle
+
+Shade Shuffle is a versatile and user-friendly tool designed for generating random color palettes at the simple click of a button.
+
+## Features
+
+1. **Lock Specific Colors**: A unique feature that allows users to lock specific colors. This enables the users to curate and customize their own color palettes based on their individual preferences and requirements.
+2. **View Lighter and Darker Shades**: Provides the option for users to view both lighter and darker shades of any selected color. This feature proves to be particularly useful for individuals who are looking to explore and understand the different shades of a specific color.
+3. **Select Your Own Colors**: Gives users the freedom to select their own colors. This can be done using a hex code or by using a color picker, providing a high level of customization.
+4. **Comprehensive Color Information Tool**: It's not just a color generator, Shade Shuffle also displays detailed color information in various formats, including hex, rgb (red, green, blue), hsl (hue, saturation, lightness), cmyk (cyan, magenta, yellow, key/black), and lab (lightness, a-green/red, b-blue/yellow). This caters to both beginners who are just starting out with color theory, as well as professionals who need detailed color information.
 
 ## Getting Started
 
-First, run the development server:
+To get started with Shade Shuffle, simply visit the website and start exploring the features. No sign up or login is required.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Contribution
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If you would like to contribute to the development of Shade Shuffle, please feel free to fork the repository and submit a pull request.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## License
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Shade Shuffle is released under the MIT License. See the LICENSE file for more details.
