@@ -7,8 +7,8 @@ import { CookiesProvider } from "next-client-cookies/server";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "Shade Shuffle",
-	description: "Generate color palettes with the click of a button. 🎨",
+	title: "Shade Shuffle 🎨",
+	description: "Generate color palettes with the click of a button.",
 };
 
 export default function RootLayout({
