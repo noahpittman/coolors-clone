@@ -81,7 +81,7 @@ const Home = () => {
 	const initSecondary = cookies.get("secondary");
 	const [isMounted, setIsMounted] = useState<boolean>(false);
 
-	const [showIconsMobile, setShowIconsMobile] = useState<boolean>(true);
+	const [showIcons, setshowIcons] = useState<boolean>(true);
 
 	const [shadesHandlerTrigger, setShadesHandlerTrigger] = useState<
 		"closed" | "open"
@@ -525,6 +525,22 @@ const Home = () => {
 		history.replaceState(null, "", hexSetToUrl(palette));
 	}, [palette]);
 
+	useEffect(() => {
+		const icons = document.getElementsByClassName("action-icon");
+
+		if (showIcons) {
+			for (let i = 0; i < icons.length; i++) {
+				icons.item(i)?.classList.remove("hidden");
+				icons.item(i)?.classList.add("flex");
+			}
+		} else {
+			for (let i = 0; i < icons.length; i++) {
+				icons.item(i)?.classList.add("hidden");
+				icons.item(i)?.classList.remove("flex");
+			}
+		}
+	}, [showIcons]);
+
 	// helper function to replace a color
 	const replaceColor = (index: number, hex: string) => {
 		const newPalette = palette.map((color) => {
@@ -769,6 +785,7 @@ const Home = () => {
 									/>
 								</div>
 							</DialogContent>
+							<div className="bg-black/25 w-full h-[1px] md:h-auto md:w-[1px] rounded-full" />
 
 							<TooltipProvider>
 								<Tooltip>
@@ -777,19 +794,13 @@ const Home = () => {
 											asChild
 											size={"icon"}
 											variant={"ghost"}
-											className="cursor-pointer md:hidden"
+											className="cursor-pointer "
 											onClick={() => {
-												setShowIconsMobile(!showIconsMobile);
-												const icons =
-													document.getElementsByClassName("action-icon");
-
-												for (let i = 0; i < icons.length; i++) {
-													icons.item(i)?.classList.toggle("hidden");
-												}
+												setshowIcons(!showIcons);
 											}}
 										>
 											<div className="cursor-pointer ">
-												{showIconsMobile ? (
+												{showIcons ? (
 													<Eye className="h-6 w-6" />
 												) : (
 													<EyeOff className="h-6 w-6" />
@@ -802,8 +813,6 @@ const Home = () => {
 									</TooltipContent>
 								</Tooltip>
 							</TooltipProvider>
-
-							<div className="bg-black/25 w-full h-[1px] md:h-auto md:w-[1px] rounded-full" />
 
 							<TooltipProvider>
 								<Tooltip>
@@ -909,7 +918,12 @@ const Home = () => {
 									colorCard
 								`}
 							>
-								<div className="flex scale-[80%] md:scale-100 md:pb-12 absolute right-0 pr-14 md:pr-0 md:static group md:flex-col items-center md:w-full md:h-full justify-end transition-all">
+								<div
+									className={`
+										${showIcons ? "flex" : "hidden"}
+										scale-[80%] md:scale-100 md:pb-12 absolute right-0 pr-14 md:pr-0 md:static group md:flex-col items-center md:w-full md:h-full justify-end transition-all 
+									`}
+								>
 									{/* Trash Icon */}
 									<TooltipProvider>
 										<Tooltip>
@@ -926,7 +940,8 @@ const Home = () => {
 											</TooltipContent>
 										</Tooltip>
 									</TooltipProvider>
-									{/* Trash Icon */}
+
+									{/* Grid Icon */}
 									<TooltipProvider>
 										<Tooltip>
 											<TooltipTrigger asChild>
@@ -935,7 +950,7 @@ const Home = () => {
 														setShadesHandlerTrigger("open");
 														openShadesHandler(color.index);
 													}}
-													className="md:static rounded-full cursor-pointer md:flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 hidden"
+													className="rounded-full cursor-pointer flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 max-md:action-icon "
 												>
 													<Grid className="h-6 w-6 group-hover:opacity-100 md:opacity-0 transition-opacity overflow-visible" />
 												</div>
