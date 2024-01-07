@@ -637,6 +637,7 @@ const Home = () => {
 									<Link
 										className="font-semibold text-black"
 										target="_blank"
+										prefetch
 										href={"/cookie-policy"}
 									>
 										cookie policy.
