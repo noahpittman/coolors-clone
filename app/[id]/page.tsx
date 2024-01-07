@@ -651,7 +651,7 @@ const Home = () => {
 						<div className="flex justify-between items-center p-2 gap-4">
 							<AlertDialogCancel
 								asChild
-								className="bg-destructive border-none hover:bg-destructive/90 hover:text-foreground-content"
+								className="bg-destructive  hover:bg-destructive/90 hover:text-foreground-content"
 							>
 								<Button
 									variant={"destructive"}
