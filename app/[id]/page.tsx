@@ -927,7 +927,7 @@ const Home = () => {
 														setShadesHandlerTrigger("open");
 														openShadesHandler(color.index);
 													}}
-													className="opacity-0 fixed md:static rounded-full cursor-pointer md:flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 action-icon"
+													className="md:static rounded-full cursor-pointer md:flex justify-center items-center overflow-visible group h-12 w-12 hover:bg-accent/25 hidden"
 												>
 													<Grid className="h-6 w-6 group-hover:opacity-100 md:opacity-0 transition-opacity overflow-visible" />
 												</div>
