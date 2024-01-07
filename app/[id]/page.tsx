@@ -1004,7 +1004,7 @@ const Home = () => {
 									{/* Grid Icon */}
 									<TooltipProvider>
 										<Tooltip>
-											<TooltipTrigger asChild>
+											<TooltipTrigger asChild className="hidden md:flex">
 												<div
 													onClick={() => {
 														setShadesHandlerTrigger("open");
