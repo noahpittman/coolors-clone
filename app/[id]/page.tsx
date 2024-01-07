@@ -314,8 +314,50 @@ const Home = () => {
 		setPalette(newPalette);
 	};
 
+	const handleLockAll = () => {
+		if (palette.every((color) => color.locked)) {
+			const newPalette = palette.map((color) => {
+				return {
+					color: color.color,
+					locked: false,
+					index: color.index,
+					hover: color.hover,
+				};
+			});
+			setPalette(newPalette);
+			return;
+		} else {
+			const newPalette = palette.map((color) => {
+				return {
+					color: color.color,
+					locked: true,
+					index: color.index,
+					hover: color.hover,
+				};
+			});
+			setPalette(newPalette);
+		}
+	};
+
 	// create a function to determine whether a color is light or dark, returns a boolean
 	const isLight = (color: string) => {
+		if (color.length == 4) {
+			const hex = color.slice(1);
+			const newHex = hex
+				.split("")
+				.map((char) => {
+					return char + char;
+				})
+				.join("");
+
+			const r = parseInt(newHex.slice(0, 1), 16);
+			const g = parseInt(newHex.slice(1, 2), 16);
+			const b = parseInt(newHex.slice(2, 3), 16);
+			const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+			if (luma < 128) return false;
+			return true;
+		}
+
 		const hex = color.slice(1);
 		const r = parseInt(hex.slice(0, 2), 16);
 		const g = parseInt(hex.slice(2, 4), 16);
@@ -773,6 +815,37 @@ const Home = () => {
 								</div>
 							</DialogContent>
 							<div className="bg-black/25 w-full h-[1px] md:h-auto md:w-[1px] rounded-full" />
+
+							<TooltipProvider>
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											asChild
+											size={"icon"}
+											variant={"ghost"}
+											className="cursor-pointer "
+											onClick={() => {
+												handleLockAll();
+											}}
+										>
+											<div className="cursor-pointer ">
+												{palette.every((color) => color.locked) ? (
+													<Lock className="h-6 w-6" />
+												) : (
+													<Unlock className="h-6 w-6" />
+												)}
+											</div>
+										</Button>
+									</TooltipTrigger>
+									<TooltipContent sideOffset={12} side="bottom">
+										{palette.every((color) => color.locked) ? (
+											<p>unlock all colors</p>
+										) : (
+											<p>lock all colors</p>
+										)}
+									</TooltipContent>
+								</Tooltip>
+							</TooltipProvider>
 
 							<TooltipProvider>
 								<Tooltip>
